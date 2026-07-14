@@ -21,9 +21,45 @@ Puis, depuis un TTY : `Hyprland`.
 | 2 | `scripts/02-packages.sh` | Hyprland + hyprlock/hypridle/hyprpaper/portail, puis waybar, foot, wofi, mako, pipewire, NetworkManager… |
 | 3 | `scripts/03-hy3.sh` | Compile hy3 contre l'Hyprland installé, pose `libhy3.so` |
 | 4 | `scripts/04-dotfiles.sh` | Lie `config/` à `~/.config/` (sauvegarde l'existant) |
+| 5 | `scripts/05-gnome.sh` | Plomberie GNOME : trousseau, thème GTK sombre, portail |
+| 6 | `scripts/06-greetd.sh` | Écran de connexion greetd + tuigreet |
 
 Le script est **idempotent** : le relancer ne casse rien. On peut n'en rejouer
-qu'une partie : `./install.sh hy3`, `./install.sh dotfiles`.
+qu'une partie : `./install.sh hy3`, `./install.sh dotfiles`, `./install.sh gnome`,
+`./install.sh greetd`.
+
+### Étape 5 — la « plomberie GNOME », qui n'est pas GNOME
+
+Un bureau se compose de trois couches indépendantes, et il est facile de les
+confondre :
+
+1. **L'écran de connexion** (étape 6) — choisit ta session au démarrage.
+2. **La plomberie** (étape 5) — des services sans interface : trousseau de mots
+   de passe (`gnome-keyring`), réglages GTK (`gsettings` / `dconf` : thème
+   sombre, police, curseur), portails (sélecteur de fichiers, partage d'écran).
+3. **Le bureau** — GNOME Shell, KDE, **ou Hyprland**. Un seul à la fois.
+
+La couche 2 vient historiquement de GNOME mais **n'est pas** GNOME : Hyprland,
+Sway et KDE s'en servent tous. C'est précisément ce qui manque à une session
+Hyprland nue — sans elle, les applis GTK restent en thème clair et beaucoup
+d'applications redemandent tes mots de passe à chaque lancement. Aucun GNOME
+Shell n'est installé, rien ne concurrence Hyprland.
+
+### Étape 6 — l'écran de connexion
+
+`greetd` + `tuigreet` remplacent la connexion en TTY par un menu de session. Les
+sessions proposées sont lues dans `/usr/share/wayland-sessions/`, où le paquet
+Debian d'Hyprland dépose `hyprland.desktop` — **Sway y figure aussi** s'il est
+installé, donc les deux apparaissent sans rien déclarer.
+
+greetd tourne sur le **TTY 7**, délibérément : les TTY 1 à 6 gardent leur invite
+texte. Si une session graphique refuse de démarrer, `Ctrl`+`Alt`+`F2` donne
+toujours un shell. Pour revenir en arrière : `sudo systemctl disable greetd`.
+
+Le trousseau est branché sur PAM (`/etc/pam.d/greetd`) pour se déverrouiller avec
+ton mot de passe de session, au lieu d'en réclamer un second. Les deux lignes
+ajoutées sont `optional` : si le module échoue, PAM les ignore — elles ne peuvent
+pas te verrouiller dehors. L'original est sauvegardé en `.bak`.
 
 ---
 

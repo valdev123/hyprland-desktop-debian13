@@ -14,7 +14,7 @@ CONFIG_DST="${XDG_CONFIG_HOME:-$HOME/.config}"
 BACKUP_DIR="$CONFIG_DST/../.config-backup-$(date +%Y%m%d-%H%M%S)"
 PLUGIN_SO="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland/plugins/libhy3.so"
 
-step "[4/4] Dotfiles"
+step "[4/6] Dotfiles"
 
 mkdir -p "$CONFIG_DST"
 

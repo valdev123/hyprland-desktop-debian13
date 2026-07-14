@@ -4,6 +4,8 @@
 #   ./install.sh              tout
 #   ./install.sh hy3          seulement la recompilation du plugin
 #   ./install.sh dotfiles     seulement les dotfiles
+#   ./install.sh gnome        seulement la plomberie GNOME (trousseau, thème GTK)
+#   ./install.sh greetd       seulement l'écran de connexion
 #
 # Idempotent : relancer le script est sans danger.
 
@@ -24,6 +26,8 @@ case "$TARGET" in
 		"$REPO_DIR/scripts/02-packages.sh"
 		"$REPO_DIR/scripts/03-hy3.sh"
 		"$REPO_DIR/scripts/04-dotfiles.sh"
+		"$REPO_DIR/scripts/05-gnome.sh"
+		"$REPO_DIR/scripts/06-greetd.sh"
 		;;
 	hy3)
 		"$REPO_DIR/scripts/03-hy3.sh"
@@ -32,8 +36,16 @@ case "$TARGET" in
 	dotfiles)
 		"$REPO_DIR/scripts/04-dotfiles.sh"
 		;;
+	gnome)
+		sudo_prime
+		"$REPO_DIR/scripts/05-gnome.sh"
+		;;
+	greetd)
+		sudo_prime
+		"$REPO_DIR/scripts/06-greetd.sh"
+		;;
 	*)
-		die "Cible inconnue : $TARGET (attendu : all | hy3 | dotfiles)"
+		die "Cible inconnue : $TARGET (attendu : all | hy3 | dotfiles | gnome | greetd)"
 		;;
 esac
 
@@ -41,9 +53,10 @@ cat <<EOF
 
 $C_GREEN Installation terminée.$C_RESET
 
- Pour démarrer la session, depuis un TTY (Ctrl+Alt+F2 si besoin) :
+ Redémarre : l'écran de connexion (greetd) s'affiche et propose Hyprland
+ ou Sway au menu de session.
 
-     Hyprland
+ Sans redémarrer, depuis un TTY (Ctrl+Alt+F2) : lance « Hyprland ».
 
  Raccourcis de départ (Super = touche Windows) :
 

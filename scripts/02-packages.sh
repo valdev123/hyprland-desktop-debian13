@@ -47,7 +47,7 @@ BUILD_PKGS=(
 	libpango1.0-dev
 )
 
-step "[2/4] Installation des paquets"
+step "[2/6] Installation des paquets"
 
 log "Paquets depuis trixie-backports (${#BACKPORTS_PKGS[@]})"
 sudo apt-get install -y -t trixie-backports "${BACKPORTS_PKGS[@]}"
