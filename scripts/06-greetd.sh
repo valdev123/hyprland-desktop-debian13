@@ -15,7 +15,10 @@ PAM=/etc/pam.d/greetd
 step "[6/6] Écran de connexion (greetd + tuigreet)"
 
 log "Installation"
-sudo apt-get install -y greetd tuigreet
+# « -t trixie-backports » par cohérence avec les étapes 2 et 5 : greetd n'en a pas
+# besoin aujourd'hui, mais ses dépendances peuvent basculer le jour où Hyprland
+# backportera une bibliothèque de plus.
+sudo apt-get install -y -t trixie-backports greetd tuigreet
 
 # --- Configuration ------------------------------------------------------------
 # vt = 7, délibérément : les TTY 1 à 6 gardent leur invite de connexion texte.

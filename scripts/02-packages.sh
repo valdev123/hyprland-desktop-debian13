@@ -49,15 +49,32 @@ BUILD_PKGS=(
 
 step "[2/6] Installation des paquets"
 
-log "Paquets depuis trixie-backports (${#BACKPORTS_PKGS[@]})"
-sudo apt-get install -y -t trixie-backports "${BACKPORTS_PKGS[@]}"
+# POURQUOI « -t trixie-backports » PARTOUT, Y COMPRIS POUR LES PAQUETS DE MAIN
+# ---------------------------------------------------------------------------
+# Hyprland vient des backports et tire avec lui des versions backportées de
+# bibliothèques centrales : libpipewire-0.3-0t64 (1.4.9 au lieu de 1.4.2),
+# libxkbcommon0 (1.13.1 au lieu de 1.7.0)…
+#
+# Or les paquets de trixie/main qui se lient à ces bibliothèques exigent une
+# égalité STRICTE de version. « pipewire » de main dépend de
+# libpipewire-0.3-modules (= 1.4.2-1), lui-même de libpipewire-0.3-0t64
+# (= 1.4.2-1) : impossible à satisfaire une fois la 1.4.9 installée. apt s'arrête
+# sur « Reached two conflicting decisions ».
+#
+# Le « -t » ne force rien : il élève la priorité des backports. apt y prend donc
+# pipewire, wireplumber et libxkbregistry0 (qui DOIVENT en venir) et laisse le
+# reste — waybar, wofi, foot… — dans main, où c'est leur seule origine.
+APT_TARGET=(-t trixie-backports)
+
+log "Hyprland et son écosystème (${#BACKPORTS_PKGS[@]})"
+sudo apt-get install -y "${APT_TARGET[@]}" "${BACKPORTS_PKGS[@]}"
 ok "Hyprland $(pkg_upstream_version hyprland) installé"
 
-log "Paquets desktop depuis trixie (${#MAIN_PKGS[@]})"
-sudo apt-get install -y "${MAIN_PKGS[@]}"
+log "Paquets desktop (${#MAIN_PKGS[@]})"
+sudo apt-get install -y "${APT_TARGET[@]}" "${MAIN_PKGS[@]}"
 
 log "Chaîne de compilation pour hy3 (${#BUILD_PKGS[@]})"
-sudo apt-get install -y "${BUILD_PKGS[@]}"
+sudo apt-get install -y "${APT_TARGET[@]}" "${BUILD_PKGS[@]}"
 
 # Sécurise l'audio et le réseau pour la première session.
 systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || \

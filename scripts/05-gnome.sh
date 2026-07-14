@@ -32,7 +32,10 @@ GNOME_PKGS=(
 step "[5/6] Plomberie GNOME"
 
 log "Installation (${#GNOME_PKGS[@]} paquets)"
-sudo apt-get install -y "${GNOME_PKGS[@]}"
+# « -t trixie-backports » pour la même raison qu'à l'étape 2 : nautilus se lie à
+# des bibliothèques qu'Hyprland a fait passer en version backports. Sans ça, apt
+# refuse de résoudre.
+sudo apt-get install -y -t trixie-backports "${GNOME_PKGS[@]}"
 
 # --- Thème sombre pour les applis GTK ----------------------------------------
 # gsettings écrit dans dconf, dans la session de l'utilisateur : pas de sudo ici.
