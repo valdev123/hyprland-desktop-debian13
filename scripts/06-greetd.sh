@@ -64,10 +64,25 @@ if [[ -f "$PAM" ]] && dpkg-query -W -f='${Status}' gnome-keyring 2>/dev/null | g
 fi
 
 # --- Activation ---------------------------------------------------------------
-# enable, pas start : le changement prend effet au prochain démarrage, pour ne
-# pas tuer la session graphique en cours.
-sudo systemctl enable greetd.service >/dev/null 2>&1
-ok "greetd activé au démarrage"
+# Un seul gestionnaire de connexion peut détenir /etc/systemd/system/display-manager.service.
+# S'il est déjà pris (par gdm3, lightdm…), « systemctl enable greetd » échoue —
+# et il faut le dire, pas l'avaler. C'est précisément ce qui s'était produit ici :
+# xdg-desktop-portal-gnome avait fait installer gdm3, qui squattait le lien.
+CURRENT_DM="$(readlink -f /etc/systemd/system/display-manager.service 2>/dev/null || true)"
+if [[ -n "$CURRENT_DM" && "$CURRENT_DM" != *greetd* ]]; then
+	warn "Un autre gestionnaire de connexion occupe la place : $(basename "$CURRENT_DM")"
+	warn "Désactive-le d'abord (p. ex. : sudo apt purge --autoremove gdm3), puis relance :"
+	warn "    ./install.sh greetd"
+	die "greetd non activé."
+fi
+
+# enable, pas start : le changement prend effet au prochain démarrage, pour ne pas
+# tuer la session graphique en cours. Les erreurs remontent (pas de /dev/null).
+if sudo systemctl enable greetd.service; then
+	ok "greetd activé au démarrage"
+else
+	die "Échec de « systemctl enable greetd » — voir le message ci-dessus."
+fi
 
 printf '\n  %sAu prochain redémarrage%s : écran de connexion, menu de session (Hyprland / Sway).\n' "$C_YELLOW" "$C_RESET"
 printf '  Pour revenir à la connexion en TTY : %ssudo systemctl disable greetd%s\n' "$C_DIM" "$C_RESET"
