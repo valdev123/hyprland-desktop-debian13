@@ -68,12 +68,21 @@ fi
 # S'il est déjà pris (par gdm3, lightdm…), « systemctl enable greetd » échoue —
 # et il faut le dire, pas l'avaler. C'est précisément ce qui s'était produit ici :
 # xdg-desktop-portal-gnome avait fait installer gdm3, qui squattait le lien.
-CURRENT_DM="$(readlink -f /etc/systemd/system/display-manager.service 2>/dev/null || true)"
-if [[ -n "$CURRENT_DM" && "$CURRENT_DM" != *greetd* ]]; then
-	warn "Un autre gestionnaire de connexion occupe la place : $(basename "$CURRENT_DM")"
-	warn "Désactive-le d'abord (p. ex. : sudo apt purge --autoremove gdm3), puis relance :"
-	warn "    ./install.sh greetd"
-	die "greetd non activé."
+DM_LINK=/etc/systemd/system/display-manager.service
+
+if [[ -L "$DM_LINK" ]]; then
+	CURRENT_DM="$(readlink "$DM_LINK")"
+	if [[ ! -e "$DM_LINK" ]]; then
+		# Lien mort : la cible a été désinstallée (typiquement gdm3 purgé) mais
+		# systemd garde le lien, et « enable greetd » refuse alors de l'écraser.
+		log "Lien mort détecté ($(basename "$CURRENT_DM") a été désinstallé) — suppression"
+		sudo rm -f "$DM_LINK"
+	elif [[ "$CURRENT_DM" != *greetd* ]]; then
+		warn "Un autre gestionnaire de connexion occupe la place : $(basename "$CURRENT_DM")"
+		warn "Désactive-le d'abord (p. ex. : sudo apt purge --autoremove gdm3), puis relance :"
+		warn "    ./install.sh greetd"
+		die "greetd non activé."
+	fi
 fi
 
 # enable, pas start : le changement prend effet au prochain démarrage, pour ne pas
