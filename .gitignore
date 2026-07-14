@@ -1,0 +1,7 @@
+# Chemin absolu du plugin, propre à chaque machine : généré par
+# scripts/04-dotfiles.sh, jamais versionné.
+config/hypr/plugins.conf
+
+# Artefacts de compilation, au cas où hy3 serait compilé dans le dépôt.
+build/
+*.so

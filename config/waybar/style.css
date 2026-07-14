@@ -1,0 +1,69 @@
+/* Waybar — palette Catppuccin Mocha, accordée aux bordures d'Hyprland. */
+
+* {
+  font-family: "JetBrains Mono", "Font Awesome 6 Free", monospace;
+  font-size: 13px;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+}
+
+window#waybar {
+  background: rgba(30, 30, 46, 0.92);
+  color: #cdd6f4;
+}
+
+#workspaces button {
+  padding: 0 10px;
+  color: #6c7086;
+  background: transparent;
+}
+
+#workspaces button.active {
+  color: #1e1e2e;
+  background: #89b4fa;
+  border-radius: 6px;
+}
+
+#workspaces button.urgent {
+  color: #1e1e2e;
+  background: #f38ba8;
+  border-radius: 6px;
+}
+
+#workspaces button:hover {
+  color: #cdd6f4;
+  background: #45475a;
+  border-radius: 6px;
+}
+
+#window {
+  padding: 0 12px;
+  color: #a6adc8;
+}
+
+#clock {
+  padding: 0 14px;
+  color: #cdd6f4;
+  font-weight: bold;
+}
+
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#tray {
+  padding: 0 10px;
+  margin: 4px 2px;
+  background: #313244;
+  border-radius: 6px;
+}
+
+#network.disconnected {
+  background: #f38ba8;
+  color: #1e1e2e;
+}
+
+#pulseaudio.muted {
+  color: #6c7086;
+}

@@ -1,0 +1,43 @@
+/* Lanceur wofi (Super + R). */
+
+window {
+  background-color: #1e1e2e;
+  border: 2px solid #89b4fa;
+  border-radius: 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+}
+
+#input {
+  margin: 8px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #313244;
+  color: #cdd6f4;
+}
+
+#inner-box,
+#outer-box,
+#scroll {
+  background-color: transparent;
+  margin: 4px;
+}
+
+#entry {
+  padding: 8px;
+  border-radius: 6px;
+}
+
+#entry:selected {
+  background-color: #89b4fa;
+}
+
+#text {
+  color: #cdd6f4;
+}
+
+#entry:selected #text {
+  color: #1e1e2e;
+  font-weight: bold;
+}

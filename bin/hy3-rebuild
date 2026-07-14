@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Recompile hy3 pour l'Hyprland actuellement installé.
+#
+# À LANCER APRÈS CHAQUE MISE À JOUR D'HYPRLAND.
+# Le plugin embarque le hash de l'Hyprland contre lequel il a été compilé ; dès
+# qu'Hyprland change de version, le hash ne correspond plus et le compositeur
+# refuse de charger hy3 (notification rouge « compiled for a different version »).
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+source "$REPO_DIR/lib/common.sh"
+
+require_not_root
+
+log "Recompilation de hy3 pour Hyprland $(pkg_upstream_version hyprland 2>/dev/null || echo '?')"
+
+"$REPO_DIR/scripts/03-hy3.sh"
+"$REPO_DIR/scripts/04-dotfiles.sh"
+
+if command -v hyprctl >/dev/null && hyprctl version >/dev/null 2>&1; then
+	log "Session Hyprland détectée : rechargement du plugin"
+	hyprctl reload
+	ok "Plugin rechargé. Si hy3 ne répond pas, redémarre la session."
+else
+	ok "Terminé. Le plugin sera chargé au prochain démarrage d'Hyprland."
+fi
