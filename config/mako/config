@@ -1,16 +1,15 @@
-# Notifications (mako).
-
-font=JetBrains Mono 10
-background-color=#1e1e2ee6
-text-color=#cdd6f4
-border-color=#89b4fa
-border-size=2
-border-radius=8
-padding=12
-margin=8
-default-timeout=5000
-anchor=top-right
-
-[urgency=critical]
-border-color=#f38ba8
-default-timeout=0
+# Mako lit ce fichier, et il ne règle rien lui-même.
+#
+# Sur une option en double, la dernière lue gagne : local vient donc après
+# defaults. Les blocs de critères s'appliquent aussi dans l'ordre de lecture,
+# c'est la seule façon qu'un [urgency=critical] personnel batte le nôtre.
+#
+# Ce découpage n'est pas cosmétique : « include » est refusé à l'intérieur d'un
+# bloc de critères, et la portée globale ne se rouvre pas. Comme defaults se
+# termine sur [urgency=critical], un include posé à sa suite serait rejeté.
+#
+# Les deux fichiers doivent exister : un include introuvable et mako refuse de
+# démarrer — plus aucune notification, sans un mot. local est créé par
+# scripts/04-dotfiles.sh.
+include=~/.config/mako/defaults
+include=~/.config/mako/local

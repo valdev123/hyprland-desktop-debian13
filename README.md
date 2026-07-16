@@ -147,12 +147,51 @@ lib/common.sh           logs, garde-fous, helpers apt
 scripts/                les 4 étapes
 config/                 dotfiles, liés dans ~/.config
   hypr/    hyprland.conf, binds.conf, hy3.conf, hyprlock, hypridle, hyprpaper
-  waybar/  config.jsonc, style.css
+  waybar/  config.jsonc (shim), defaults.jsonc, style.css
   foot/    mako/    wofi/
 ```
 
 `config/hypr/plugins.conf` est **généré** (chemin absolu du `.so`, propre à la
 machine) et ignoré par git.
+
+### Tes réglages : les fichiers `local`
+
+Les dotfiles sont déployés par **liens symboliques** : `~/.config/hypr` pointe
+dans ce dépôt. Éditer sa config, c'est donc éditer le dépôt — personnaliser et
+suivre l'amont deviennent la même action, et chaque `git pull` devient un
+conflit.
+
+D'où un fichier `local` par programme, ignoré par git, **lu en dernier** — c'est
+lui qui gagne :
+
+```
+hypr/local.conf      waybar/local.jsonc    waybar/local.css
+mako/local           foot/local.ini
+```
+
+Mets-y tes réglages : le fichier versionné reste identique pour tout le monde,
+ce qui diffère vit à côté. Aucun conflit, et **aucune branche à maintenir** —
+c'est ce qui rend ce dépôt clonable. Le motif n'est pas nouveau, `plugins.conf`
+le fait déjà.
+
+Trois choses que le code ne peut pas dire :
+
+- **waybar est coupé en deux** (`config.jsonc` ne règle rien, tout est dans
+  `defaults.jsonc`) parce qu'il donne raison au **premier** qui définit une clé —
+  l'inverse de tous les autres. Un fichier inclus ne peut pas battre celui qui
+  l'inclut : sans ce shim, aucune surcharge personnelle ne serait possible.
+- **Ces fichiers sont créés une fois puis jamais régénérés**, contrairement à
+  `plugins.conf` et `gpu.conf` : ils contiennent ton travail.
+- **Un `git pull` qui ajoute un nouveau `local` exige `./install.sh dotfiles`.**
+  Sinon mako, qui refuse de démarrer sur un include introuvable, reste muet sans
+  prévenir.
+
+**wofi est l'exception** : il charge son CSS avec `load_from_data`, donc GTK
+résout un `@import` relatif depuis le *répertoire courant de wofi* et non depuis
+`style.css` — et il ne développe pas `~`. Un import y serait donc soit cassé,
+soit dépendant d'où wofi a été lancé, et un import mort fait tomber toute la
+feuille sans un mot dans les logs. Ses 43 lignes cosmétiques s'éditent donc
+directement.
 
 ---
 
@@ -182,7 +221,8 @@ HY3_TAG=hl0.55.0 ./install.sh hy3
 
 **Écran noir au lancement**
 Vérifie que le GPU est bien pris en charge : `lspci -k | grep -A3 VGA` doit
-montrer `amdgpu`.
+montrer `amdgpu`. Sur une carte NVIDIA, regarde d'abord `~/.config/hypr/gpu.conf`
+(voir plus bas) et que `nvidia-driver` est installé — ce dépôt ne l'installe pas.
 
 **Retrouver ses anciennes configs**
 Elles sont dans `~/.config-backup-<date>/`, jamais supprimées.
@@ -192,6 +232,12 @@ Elles sont dans `~/.config-backup-<date>/`, jamais supprimées.
 ## Notes matérielles (cette machine)
 
 - **GPU Radeon RX 6950 XT** : pilote libre `amdgpu`, rien à configurer.
+
+  Rien à configurer *ici* : c'est vrai sur AMD et Intel, faux sur NVIDIA, qui
+  réclame des variables d'environnement. Plutôt que de graver le cas AMD dans la
+  config versionnée, `04-dotfiles.sh` lit le vendeur dans `/sys/class/drm` et
+  génère `config/hypr/gpu.conf`, non versionné comme `plugins.conf` — sur AMD il
+  est vide. Un réglage qui dépend de la machine n'a rien à faire dans le dépôt.
 - **Wifi Broadcom BCM4360** : nécessite `broadcom-sta-dkms` et un **Secure Boot
   désactivé** (module non signé). Sans rapport avec Hyprland, mais c'est ce qui
   fournit le réseau.

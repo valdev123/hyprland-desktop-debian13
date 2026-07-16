@@ -46,6 +46,33 @@ sudo_prime() {
 	while true; do sudo -n true; sleep 50; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
 }
 
+# --- Matériel -----------------------------------------------------------------
+
+# Vendeur du GPU qui pilote l'affichage : amd | nvidia | intel | inconnu.
+#
+# On interroge sysfs et non « lspci » : c'est le noyau qui répond, sans dépendre
+# de pciutils, et /sys/class/drm ne liste que les cartes réellement pilotées par
+# un driver DRM — donc exactement celles qu'Hyprland pourra utiliser.
+#
+# (Au passage : « lspci -d ::0300 -d ::0302 » ne fonctionnerait pas, lspci ne
+# retient que le dernier -d au lieu de les cumuler.)
+detect_gpu() {
+	local vendors=""
+	for f in /sys/class/drm/card*/device/vendor; do
+		[[ -r "$f" ]] || continue
+		vendors+="$(<"$f") "
+	done
+
+	# NVIDIA l'emporte sur une machine hybride : c'est lui qui impose des
+	# variables d'environnement, l'iGPU Intel ou AMD n'en demande aucune.
+	case "$vendors" in
+		*0x10de*) printf 'nvidia\n' ;;
+		*0x1002*) printf 'amd\n' ;;
+		*0x8086*) printf 'intel\n' ;;
+		*)        printf 'inconnu\n' ;;
+	esac
+}
+
 # --- Utilitaires apt ----------------------------------------------------------
 
 pkg_installed() { dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q '^install ok installed$'; }

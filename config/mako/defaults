@@ -1,0 +1,16 @@
+# Notifications (mako).
+
+font=JetBrains Mono 10
+background-color=#1e1e2ee6
+text-color=#cdd6f4
+border-color=#89b4fa
+border-size=2
+border-radius=8
+padding=12
+margin=8
+default-timeout=5000
+anchor=top-right
+
+[urgency=critical]
+border-color=#f38ba8
+default-timeout=0

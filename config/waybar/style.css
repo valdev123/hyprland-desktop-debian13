@@ -67,3 +67,11 @@ window#waybar {
 #pulseaudio.muted {
   color: #6c7086;
 }
+
+/* Tes surcharges, importées en dernier : à spécificité égale, c'est la dernière
+   règle qui gagne. Chemin relatif volontaire — waybar charge cette feuille avec
+   load_from_path, donc GTK résout l'import depuis le dossier du fichier, ce qui
+   évite de coder ~/.config en dur dans un fichier versionné.
+   Ne supprime pas local.css : un import qui ne trouve rien fait tomber TOUTE la
+   feuille, et waybar s'affiche alors sans aucun thème. */
+@import url("local.css");

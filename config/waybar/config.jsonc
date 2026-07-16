@@ -1,58 +1,19 @@
+// Waybar lit ce fichier, et il ne règle volontairement rien.
+//
+// Sur une clé en double, waybar garde la PREMIÈRE valeur rencontrée, en partant
+// du fichier incluant puis des inclus dans l'ordre. C'est l'inverse de tous les
+// autres programmes d'ici, et ça impose les deux choix ci-dessous :
+//
+//   - local.jsonc est listé AVANT defaults.jsonc, sans quoi aucune surcharge
+//     personnelle ne pourrait jamais gagner ;
+//   - rien n'est défini ici, sinon ce serait indépassable par les deux.
+//
+// La vraie configuration est donc dans defaults.jsonc. local.jsonc est ignoré
+// par git et créé par scripts/04-dotfiles.sh ; s'il manque, waybar l'ignore
+// sans broncher.
 {
-  "layer": "top",
-  "position": "top",
-  "height": 34,
-  "spacing": 6,
-
-  "modules-left": ["hyprland/workspaces", "hyprland/window"],
-  "modules-center": ["clock"],
-  "modules-right": ["pulseaudio", "network", "cpu", "memory", "tray"],
-
-  "hyprland/workspaces": {
-    "format": "{id}",
-    "on-click": "activate"
-  },
-
-  "hyprland/window": {
-    "format": "{title}",
-    "max-length": 60,
-    "separate-outputs": true
-  },
-
-  "clock": {
-    "format": "{:%H:%M  %a %d %b}",
-    "tooltip-format": "<tt>{calendar}</tt>",
-    "locale": "fr_FR.UTF-8"
-  },
-
-  "cpu": {
-    "format": "CPU {usage}%",
-    "interval": 3
-  },
-
-  "memory": {
-    "format": "RAM {percentage}%",
-    "interval": 5
-  },
-
-  "pulseaudio": {
-    "format": "VOL {volume}%",
-    "format-muted": "VOL muet",
-    "on-click": "pavucontrol",
-    "scroll-step": 5
-  },
-
-  "network": {
-    // wlp36s0 : la carte Broadcom BCM4360 de cette machine.
-    "format-wifi": "{essid} {signalStrength}%",
-    "format-ethernet": "Ethernet",
-    "format-disconnected": "Hors ligne",
-    "tooltip-format": "{ifname} — {ipaddr}",
-    "on-click": "nm-connection-editor"
-  },
-
-  "tray": {
-    "icon-size": 16,
-    "spacing": 8
-  }
+  "include": [
+    "~/.config/waybar/local.jsonc",
+    "~/.config/waybar/defaults.jsonc"
+  ]
 }

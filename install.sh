@@ -72,5 +72,9 @@ $C_GREEN Installation terminée.$C_RESET
 
  La liste complète est dans config/hypr/binds.conf.
 
+ Tes réglages à toi : les fichiers « local » de ~/.config (hypr/local.conf,
+ waybar/local.jsonc, waybar/local.css, mako/local, foot/local.ini). Ils sont
+ lus en dernier, donc ils gagnent — et ils ne sont ni écrasés ni commités.
+
 $C_YELLOW Après chaque « apt upgrade » qui met à jour Hyprland : lance « hy3-rebuild ».$C_RESET
 EOF

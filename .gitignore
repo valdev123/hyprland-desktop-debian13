@@ -2,6 +2,21 @@
 # scripts/04-dotfiles.sh, jamais versionné.
 config/hypr/plugins.conf
 
+# Variables propres au GPU de la machine : généré par scripts/04-dotfiles.sh,
+# jamais versionné — sinon des réglages NVIDIA suivraient le dépôt sur une
+# machine AMD.
+config/hypr/gpu.conf
+
+# Surcharges personnelles : créées une fois par scripts/04-dotfiles.sh, puis
+# jamais réécrites. C'est là que chacun met ses réglages — c'est ce qui permet de
+# cloner ce dépôt et de le personnaliser sans qu'un « git pull » ait jamais à
+# fusionner quoi que ce soit.
+config/hypr/local.conf
+config/waybar/local.jsonc
+config/waybar/local.css
+config/mako/local
+config/foot/local.ini
+
 # Artefacts de compilation, au cas où hy3 serait compilé dans le dépôt.
 build/
 *.so
