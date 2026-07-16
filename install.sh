@@ -58,16 +58,17 @@ $C_GREEN Installation terminée.$C_RESET
 
  Sans redémarrer, depuis un TTY (Ctrl+Alt+F2) : lance « Hyprland ».
 
- Raccourcis de départ (Super = touche Windows) :
+ Raccourcis de départ (Super = touche Windows), calqués sur i3 :
 
-     Super + Q            terminal (foot)
-     Super + R            lanceur (wofi)
-     Super + C            fermer la fenêtre
-     Super + M            quitter Hyprland
-     Super + Entrée       regrouper en onglets (hy3)
+     Super + Entrée       terminal (foot)
+     Super + D            lanceur (wofi)
+     Super + Shift + Q    fermer la fenêtre
+     Super + Shift + E    quitter Hyprland
+     Super + Shift + C    recharger la config
      Super + H / V        découper horizontalement / verticalement (hy3)
+     Super + W            regrouper en onglets (hy3)
      Super + flèches      changer de fenêtre
-     Super + 1..9         changer de bureau
+     Super + & é " …      changer de bureau (rangée de chiffres AZERTY)
 
  La liste complète est dans config/hypr/binds.conf.
 

@@ -111,21 +111,27 @@ hy3-rebuild           # recompile, réinstalle, recharge
 
 `Super` = touche Windows. Clavier **AZERTY** (`kb_layout = fr`).
 
+Calqués sur i3, aux trois écarts près que `binds.conf` documente (pas de mode
+*stacking*, pas de `Mod+Space`, et `Mod+Shift+E` ne demande pas confirmation).
+
 | Touches | Action |
 |---|---|
-| `Super` + `Q` / `R` / `E` | terminal / lanceur / fichiers |
-| `Super` + `C` | fermer la fenêtre ou l'onglet |
-| `Super` + `M` | quitter Hyprland |
+| `Super` + `Entrée` / `D` / `N` | terminal / lanceur / fichiers |
+| `Super` + `Shift` + `Q` | fermer la fenêtre ou l'onglet |
+| `Super` + `Shift` + `E` | quitter Hyprland |
+| `Super` + `Shift` + `C` | recharger la config |
 | `Super` + `H` / `V` | découper horizontalement / verticalement *(hy3)* |
-| `Super` + `Entrée` | regrouper en onglets *(hy3)* |
-| `Super` + `S` | basculer groupe ↔ onglets *(hy3)* |
+| `Super` + `E` | basculer le sens de la découpe *(hy3)* |
+| `Super` + `W` | regrouper en onglets *(hy3)* |
+| `Super` + `S` | basculer onglets ↔ découpe *(hy3)* |
 | `Super` + `Tab` | onglet suivant *(hy3)* |
 | `Super` + `A` / `Shift`+`A` | remonter / redescendre dans l'arbre *(hy3)* |
-| `Super` + flèches | changer de fenêtre |
-| `Super` + `Shift` + flèches | déplacer la fenêtre |
-| `Super` + `Ctrl` + flèches | redimensionner |
+| `Super` + `J` `K` `L` `M` ou flèches | changer de fenêtre |
+| `Super` + `Shift` + idem | déplacer la fenêtre |
+| `Super` + `R` | mode redimensionnement, `Échap` pour sortir |
+| `Super` + `F` | plein écran |
 | `Super` + `&` … `ç` | bureaux 1 à 9 |
-| `Super` + `L` | verrouiller |
+| `Super` + `Ctrl` + `L` | verrouiller *(`Super`+`L` sert au focus)* |
 | `Impr. écran` | capture d'une zone → presse-papier |
 
 Tout est dans `config/hypr/binds.conf`, modifiable à chaud (`hyprctl reload`).
