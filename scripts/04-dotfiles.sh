@@ -14,7 +14,7 @@ CONFIG_DST="${XDG_CONFIG_HOME:-$HOME/.config}"
 BACKUP_DIR="$CONFIG_DST/../.config-backup-$(date +%Y%m%d-%H%M%S)"
 PLUGIN_SO="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland/plugins/libhy3.so"
 
-step "[4/6] Dotfiles"
+step "[4/7] Dotfiles"
 
 mkdir -p "$CONFIG_DST"
 
@@ -37,6 +37,15 @@ for src in "$CONFIG_SRC"/*; do
 
 	ln -s "$src" "$dst"
 	ok "$name → $src"
+done
+
+# Un dossier retiré de config/ (foot, remplacé par alacritty) laisse un lien mort
+# dans ~/.config. On ne touche qu'à ceux-là : cassés ET pointant dans le dépôt.
+for dst in "$CONFIG_DST"/*; do
+	[[ -L "$dst" && ! -e "$dst" ]] || continue
+	[[ "$(readlink "$dst")" == "$CONFIG_SRC"/* ]] || continue
+	rm "$dst"
+	warn "$(basename "$dst") : lien mort vers le dépôt, retiré."
 done
 
 # --- Chemin du plugin, résolu pour cette machine ------------------------------
@@ -318,15 +327,20 @@ creer_si_absent "$CONFIG_SRC/mako/local" <<-'EOF'
 	# toute notification, sans rien pour te le dire.
 EOF
 
-creer_si_absent "$CONFIG_SRC/foot/local.ini" <<-'EOF'
-	# Tes réglages foot. Ignoré par git.
-	# Inclus en dernier par foot.ini : la dernière valeur écrite gagne. Ce fichier
-	# démarre dans la section [main] ; ouvre [colors], [cursor]… au besoin.
+creer_si_absent "$CONFIG_SRC/alacritty/local.toml" <<-'EOF'
+	# Tes réglages Alacritty. Ignoré par git.
+	# Importé après defaults.toml par alacritty.toml, qui ne contient lui-même
+	# aucun réglage : ce que tu écris ici gagne.
 	#
-	#     font=Fira Code:size=11
+	#     [font]
+	#     size = 13.0
+EOF
+
+creer_si_absent "$CONFIG_SRC/tmux/local.conf" <<-'EOF'
+	# Tes réglages tmux. Ignoré par git.
+	# Sourcé en dernier par tmux.conf : la dernière valeur écrite gagne.
 	#
-	#     [colors]
-	#     background=000000
+	#     set -g prefix C-a
 EOF
 
 # --- Commandes du dépôt dans le PATH ------------------------------------------

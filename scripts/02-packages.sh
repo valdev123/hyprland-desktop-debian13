@@ -26,9 +26,10 @@ MAIN_PKGS=(
 	# Session
 	xdg-desktop-portal xdg-desktop-portal-gtk xwayland qt6-wayland
 	# Interface
-	waybar wofi foot mako-notifier
+	waybar wofi alacritty mako-notifier
 	# Outils
 	grim slurp wl-clipboard brightnessctl playerctl
+	tmux
 	jq                       # lit « hyprctl monitors -j » dans bin/hypr-monitors
 	thunar udiskie pavucontrol blueman
 	# Audio
@@ -48,7 +49,7 @@ BUILD_PKGS=(
 	libpango1.0-dev
 )
 
-step "[2/6] Installation des paquets"
+step "[2/7] Installation des paquets"
 
 # POURQUOI « -t trixie-backports » PARTOUT, Y COMPRIS POUR LES PAQUETS DE MAIN
 # ---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ step "[2/6] Installation des paquets"
 #
 # Le « -t » ne force rien : il élève la priorité des backports. apt y prend donc
 # pipewire, wireplumber et libxkbregistry0 (qui DOIVENT en venir) et laisse le
-# reste — waybar, wofi, foot… — dans main, où c'est leur seule origine.
+# reste — waybar, wofi, alacritty… — dans main, où c'est leur seule origine.
 APT_TARGET=(-t trixie-backports)
 
 log "Hyprland et son écosystème (${#BACKPORTS_PKGS[@]})"

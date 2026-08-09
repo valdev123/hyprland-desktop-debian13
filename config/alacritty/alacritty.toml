@@ -1,0 +1,11 @@
+# Terminal Alacritty (Super + Entrée).
+#
+# Fichier volontairement sans aucun réglage : Alacritty lit les imports d'abord,
+# dans l'ordre, puis le fichier qui importe — qui gagne donc sur eux. Y écrire
+# quoi que ce soit écraserait local.toml.
+
+[general]
+import = [
+    "~/.config/alacritty/defaults.toml",
+    "~/.config/alacritty/local.toml",
+]

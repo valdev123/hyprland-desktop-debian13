@@ -12,7 +12,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 CONF=/etc/greetd/config.toml
 PAM=/etc/pam.d/greetd
 
-step "[6/6] Écran de connexion (greetd + tuigreet)"
+step "[6/7] Écran de connexion (greetd + tuigreet)"
 
 log "Installation"
 # « -t trixie-backports » par cohérence avec les étapes 2 et 5 : greetd n'en a pas

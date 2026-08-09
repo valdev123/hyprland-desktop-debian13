@@ -6,6 +6,7 @@
 #   ./install.sh dotfiles     seulement les dotfiles
 #   ./install.sh gnome        seulement la plomberie GNOME (trousseau, thème GTK)
 #   ./install.sh greetd       seulement l'écran de connexion
+#   ./install.sh apps         seulement les applications (VS Code, Chrome, Zed)
 #
 # Idempotent : relancer le script est sans danger.
 
@@ -28,6 +29,7 @@ case "$TARGET" in
 		"$REPO_DIR/scripts/04-dotfiles.sh"
 		"$REPO_DIR/scripts/05-gnome.sh"
 		"$REPO_DIR/scripts/06-greetd.sh"
+		"$REPO_DIR/scripts/07-apps.sh"
 		;;
 	hy3)
 		"$REPO_DIR/scripts/03-hy3.sh"
@@ -44,8 +46,12 @@ case "$TARGET" in
 		sudo_prime
 		"$REPO_DIR/scripts/06-greetd.sh"
 		;;
+	apps)
+		sudo_prime
+		"$REPO_DIR/scripts/07-apps.sh"
+		;;
 	*)
-		die "Cible inconnue : $TARGET (attendu : all | hy3 | dotfiles | gnome | greetd)"
+		die "Cible inconnue : $TARGET (attendu : all | hy3 | dotfiles | gnome | greetd | apps)"
 		;;
 esac
 
@@ -60,7 +66,7 @@ $C_GREEN Installation terminée.$C_RESET
 
  Raccourcis de départ (Super = touche Windows), calqués sur i3 :
 
-     Super + Entrée       terminal (foot)
+     Super + Entrée       terminal (alacritty, qui ouvre tmux)
      Super + D            lanceur (wofi)
      Super + Shift + Q    fermer la fenêtre
      Super + Shift + E    quitter Hyprland
@@ -77,8 +83,9 @@ $C_GREEN Installation terminée.$C_RESET
  courante, puis « hyprctl reload ».
 
  Tes réglages à toi : les fichiers « local » de ~/.config (hypr/local.conf,
- waybar/local.jsonc, waybar/local.css, mako/local, foot/local.ini). Ils sont
- lus en dernier, donc ils gagnent — et ils ne sont ni écrasés ni commités.
+ waybar/local.jsonc, waybar/local.css, mako/local, alacritty/local.toml,
+ tmux/local.conf). Ils sont lus en dernier, donc ils gagnent — et ils ne sont
+ ni écrasés ni commités.
 
 $C_YELLOW Après chaque « apt upgrade » qui met à jour Hyprland : lance « hy3-rebuild ».$C_RESET
 EOF

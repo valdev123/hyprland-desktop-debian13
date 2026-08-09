@@ -43,8 +43,8 @@ partagées avec Hyprland restent cohérentes.
 | Domaine | Paquets |
 |---|---|
 | Session | `xdg-desktop-portal`, `xdg-desktop-portal-gtk`, `xwayland`, `qt6-wayland` |
-| Interface | `waybar` (barre), `wofi` (lanceur), `foot` (terminal), `mako-notifier` (notifications) |
-| Outils | `grim` + `slurp` (captures), `wl-clipboard`, `brightnessctl`, `playerctl`, `jq`, `thunar`, `udiskie` (montage auto), `pavucontrol`, `blueman` |
+| Interface | `waybar` (barre), `wofi` (lanceur), `alacritty` (terminal), `mako-notifier` (notifications) |
+| Outils | `grim` + `slurp` (captures), `wl-clipboard`, `brightnessctl`, `playerctl`, `tmux`, `jq`, `thunar`, `udiskie` (montage auto), `pavucontrol`, `blueman` |
 | Audio | `pipewire`, `pipewire-pulse`, `wireplumber` |
 | Réseau | `network-manager`, `network-manager-gnome` (`nm-applet`) |
 | Polices et icônes | `fonts-jetbrains-mono`, `fonts-font-awesome`, `fonts-noto-color-emoji`, `papirus-icon-theme` |
@@ -97,13 +97,29 @@ Aucun GNOME Shell, aucun `gdm3`, aucun `xdg-desktop-portal-gnome`.
 
 `greetd` et `tuigreet`.
 
+## Étape 7 — applications hors Debian
+
+Aucune des trois n'est empaquetée par Debian.
+
+| Source | Contenu |
+|---|---|
+| Dépôt `packages.microsoft.com/repos/code` | `code` (VS Code) |
+| Dépôt `dl.google.com/linux/chrome/deb` | `google-chrome-stable` |
+| Installeur `zed.dev/install.sh` | `~/.local/zed.app`, `~/.local/bin/zed`, `~/.local/share/applications/dev.zed.Zed.desktop` |
+
+Les deux dépôts sont posés en deb822 dans `/etc/apt/sources.list.d/`, leurs clés
+désarmées dans `/etc/apt/keyrings/{vscode,google-chrome}.gpg`.
+`/etc/default/google-chrome` (`repo_add_once=false`) empêche Chrome de déclarer
+son dépôt une seconde fois.
+
+Zed vit hors d'apt : `apt upgrade` ne le met pas à jour, il s'en charge lui-même.
+
 ---
 
 ## Ce que le dépôt n'installe pas
 
 - **Aucun pilote GPU.** Sur NVIDIA, `04-dotfiles.sh` détecte la carte et écrit
   `gpu.conf`, mais prévient que `nvidia-driver` est à ta charge.
-- **Aucun navigateur, aucune application de travail.**
 - `wpctl` (wireplumber), `hyprctl` (hyprland) et `loginctl` (systemd) sont
   utilisés par les raccourcis : ils viennent de paquets déjà listés.
 
@@ -111,7 +127,9 @@ Aucun GNOME Shell, aucun `gdm3`, aucun `xdg-desktop-portal-gnome`.
 
 Il n'y a pas de script pour ça. Les paquets se retirent avec
 `sudo apt purge --autoremove <liste>` ; le reste tient dans quatre chemins :
-`~/.config/{hypr,waybar,wofi,foot,mako}` (des liens), `~/.local/share/hy3-src`,
-`~/.local/share/hyprland/plugins`, `~/.local/bin/{hy3-rebuild,hypr-monitors}`.
-Côté système, `/etc/greetd/config.toml` et `/etc/pam.d/greetd` ont chacun un
-`.bak`.
+`~/.config/{hypr,waybar,wofi,alacritty,tmux,mako}` (des liens),
+`~/.local/share/hy3-src`, `~/.local/share/hyprland/plugins`,
+`~/.local/bin/{hy3-rebuild,hypr-monitors}` — plus `~/.local/zed.app` et
+`~/.local/bin/zed`. Côté système, `/etc/greetd/config.toml` et `/etc/pam.d/greetd`
+ont chacun un `.bak` ; les dépôts tiers se retirent en supprimant leur `.sources`
+et leur clé.

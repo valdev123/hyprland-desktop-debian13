@@ -10,7 +10,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../lib/common.sh"
 
 LIST=/etc/apt/sources.list.d/trixie-backports.sources
 
-step "[1/6] Dépôt trixie-backports"
+step "[1/7] Dépôt trixie-backports"
 
 if [[ -f "$LIST" ]] && grep -q 'trixie-backports' "$LIST"; then
 	ok "Déjà activé ($LIST)"

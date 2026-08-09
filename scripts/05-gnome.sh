@@ -42,7 +42,7 @@ GNOME_PKGS=(
 # utilise xdg-desktop-portal-hyprland (partage d'écran) + xdg-desktop-portal-gtk
 # (sélecteur de fichiers), tous deux installés à l'étape 2.
 
-step "[5/6] Plomberie GNOME"
+step "[5/7] Plomberie GNOME"
 
 log "Installation (${#GNOME_PKGS[@]} paquets)"
 # --no-install-recommends : garde-fou contre exactement le problème ci-dessus.

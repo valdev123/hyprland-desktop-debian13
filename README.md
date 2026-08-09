@@ -20,8 +20,7 @@ travail ici est cette seconde couche, pas l'installation d'Hyprland — qui tien
 en une ligne d'`apt`. Le plugin **hy3**, lui, se compile : c'est la seule pièce
 que Debian n'empaquette pas.
 
-Ce que le dépôt n'installe pas, délibérément : les pilotes GPU et les
-applications de travail.
+Ce que le dépôt n'installe pas, délibérément : les pilotes GPU.
 
 ---
 
@@ -30,15 +29,16 @@ applications de travail.
 | Étape | Script | Contenu |
 |---|---|---|
 | 1 | `scripts/01-backports.sh` | Active `trixie-backports` |
-| 2 | `scripts/02-packages.sh` | Hyprland + hyprlock/hypridle/hyprpaper/portail, puis waybar, foot, wofi, mako, pipewire, NetworkManager… |
+| 2 | `scripts/02-packages.sh` | Hyprland + hyprlock/hypridle/hyprpaper/portail, puis waybar, alacritty, wofi, mako, tmux, pipewire, NetworkManager… |
 | 3 | `scripts/03-hy3.sh` | Compile hy3 contre l'Hyprland installé, pose `libhy3.so` |
 | 4 | `scripts/04-dotfiles.sh` | Lie `config/` à `~/.config/` (sauvegarde l'existant) |
 | 5 | `scripts/05-gnome.sh` | Plomberie GNOME : trousseau, thème GTK sombre, portail |
 | 6 | `scripts/06-greetd.sh` | Écran de connexion greetd + tuigreet |
+| 7 | `scripts/07-apps.sh` | Applications hors Debian : VS Code, Google Chrome, Zed |
 
 Le script est **idempotent** : le relancer ne casse rien. On peut n'en rejouer
 qu'une partie : `./install.sh hy3`, `./install.sh dotfiles`, `./install.sh gnome`,
-`./install.sh greetd`.
+`./install.sh greetd`, `./install.sh apps`.
 
 L'inventaire complet de ce qui atterrit sur la machine — paquet par paquet,
 chemin par chemin — est dans [PAQUETS.md](PAQUETS.md).
@@ -75,6 +75,25 @@ Le trousseau est branché sur PAM (`/etc/pam.d/greetd`) pour se déverrouiller a
 ton mot de passe de session, au lieu d'en réclamer un second. Les deux lignes
 ajoutées sont `optional` : si le module échoue, PAM les ignore — elles ne peuvent
 pas te verrouiller dehors. L'original est sauvegardé en `.bak`.
+
+### Étape 7 — les applications qui ne sont pas dans Debian
+
+Le terminal, le multiplexeur et le reste du bureau viennent d'`apt` comme tout le
+monde. Trois outils échappent à Debian, et chacun pour une raison différente :
+
+- **VS Code** et **Google Chrome** sont propriétaires (ou binaires seulement) :
+  Microsoft et Google publient chacun un dépôt APT. On l'ajoute au format deb822,
+  clé désarmée dans `/etc/apt/keyrings/`. Chromium et VSCodium, eux, sont dans
+  Debian — ce ne sont simplement pas ces logiciels-là.
+- **Zed** n'a ni paquet ni dépôt : seulement l'installeur officiel, qui pose tout
+  dans `~/.local` sans root. Contrepartie assumée : `apt upgrade` ne le verra
+  jamais, Zed se met à jour lui-même.
+
+Le piège de l'étape est ailleurs. Les paquets Google et Microsoft **réinstallent
+leur propre dépôt** à chaque mise à jour, au format `.list` : le dépôt se
+retrouve déclaré deux fois et apt le signale à chaque `update`. D'où
+`/etc/default/google-chrome` (`repo_add_once=false`), seul interrupteur que
+Chrome respecte, et la neutralisation du `.list` s'il réapparaît.
 
 ---
 
@@ -163,17 +182,31 @@ install.sh              orchestrateur
 bin/hy3-rebuild         recompile hy3 après une mise à jour d'Hyprland
 bin/hypr-monitors       fige la disposition des écrans dans monitors.conf
 lib/common.sh           logs, garde-fous, détection matérielle, helpers apt
-scripts/                les 6 étapes
+scripts/                les 7 étapes
 config/                 dotfiles, liés dans ~/.config
-  hypr/    hyprland.conf, binds.conf, hy3.conf, hyprlock, hypridle, hyprpaper
-  waybar/  config.jsonc (shim), defaults.jsonc, style.css
-  foot/    mako/    wofi/
+  hypr/       hyprland.conf, binds.conf, hy3.conf, hyprlock, hypridle, hyprpaper
+  waybar/     config.jsonc (shim), defaults.jsonc, style.css
+  alacritty/  alacritty.toml (shim), defaults.toml
+  tmux/       mako/    wofi/
 ```
 
 Tout ce qui dépend de la machine est **généré** par `./install.sh dotfiles` et
 ignoré par git : `plugins.conf`, `gpu.conf`, `keyboard.conf`,
 `hypridle-local.conf`, `waybar/machine.jsonc` — plus `monitors.conf`, écrit une
 seule fois. Voir « Ce qui dépend de la machine ».
+
+### Le terminal ouvre tmux
+
+Alacritty ne lance pas un shell mais `tmux new-session` — une session neuve par
+fenêtre, jamais deux fenêtres sur la même session : sous un gestionnaire
+tuilant, un miroir dont les deux moitiés se contraignent en taille n'a pas de
+sens.
+
+C'est branché côté **Alacritty**, pas dans `~/.bashrc`. Deux raisons : le
+réglage reste dans le dépôt, versionné avec le reste ; et les terminaux
+intégrés de VS Code et Zed continuent d'ouvrir un shell nu, ce qu'un
+`~/.bashrc` leur imposerait aussi. Pour t'en passer, redéfinis
+`[terminal.shell]` dans `alacritty/local.toml`.
 
 ### Tes réglages : les fichiers `local`
 
@@ -187,7 +220,7 @@ lui qui gagne :
 
 ```
 hypr/local.conf      waybar/local.jsonc    waybar/local.css
-mako/local           foot/local.ini
+mako/local           alacritty/local.toml  tmux/local.conf
 ```
 
 Mets-y tes réglages : le fichier versionné reste identique pour tout le monde,
@@ -197,10 +230,12 @@ le fait déjà.
 
 Trois choses que le code ne peut pas dire :
 
-- **waybar est coupé en deux** (`config.jsonc` ne règle rien, tout est dans
-  `defaults.jsonc`) parce qu'il donne raison au **premier** qui définit une clé —
-  l'inverse de tous les autres. Un fichier inclus ne peut pas battre celui qui
-  l'inclut : sans ce shim, aucune surcharge personnelle ne serait possible.
+- **waybar et alacritty sont coupés en deux** (`config.jsonc` et `alacritty.toml`
+  ne règlent rien, tout est dans `defaults.jsonc` / `defaults.toml`). Waybar donne
+  raison au **premier** qui définit une clé ; Alacritty, lui, charge ses imports
+  d'abord et laisse gagner **le fichier qui importe**. Dans les deux cas, un
+  fichier inclus ne peut pas battre celui qui l'inclut : sans ce shim vide,
+  aucune surcharge personnelle ne serait possible.
 - **Ces fichiers sont créés une fois puis jamais régénérés**, contrairement à
   `plugins.conf` et `gpu.conf` : ils contiennent ton travail.
 - **Un `git pull` qui ajoute un nouveau `local` exige `./install.sh dotfiles`.**

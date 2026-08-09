@@ -25,7 +25,7 @@ SRC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hy3-src"
 PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland/plugins"
 PLUGIN_SO="$PLUGIN_DIR/libhy3.so"
 
-step "[3/6] Plugin hy3"
+step "[3/7] Plugin hy3"
 
 pkg_installed hyprland     || die "hyprland n'est pas installé. Lance d'abord scripts/02-packages.sh."
 pkg_installed hyprland-dev || die "hyprland-dev n'est pas installé : impossible de compiler un plugin sans les headers."

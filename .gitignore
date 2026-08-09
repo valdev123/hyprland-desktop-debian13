@@ -27,7 +27,8 @@ config/hypr/local.conf
 config/waybar/local.jsonc
 config/waybar/local.css
 config/mako/local
-config/foot/local.ini
+config/alacritty/local.toml
+config/tmux/local.conf
 
 # Artefacts de compilation, au cas où hy3 serait compilé dans le dépôt.
 build/
