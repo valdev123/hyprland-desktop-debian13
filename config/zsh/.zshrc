@@ -70,15 +70,24 @@ alias ll='ls -lh'
 alias la='ls -lha'
 alias grep='grep --color=auto'
 
-# --- Prompt (Catppuccin Mocha, comme le terminal et tmux) ---------------------
+# --- Prompt (Gnzh sur une ligne, en Catppuccin Mocha) -------------------------
 autoload -Uz vcs_info add-zsh-hook
 zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:git:*' formats       ' %F{#f9e2af}%b%f'
-zstyle ':vcs_info:git:*' actionformats ' %F{#f9e2af}%b%f %F{#f38ba8}(%a)%f'
+zstyle ':vcs_info:git:*' formats       ' %F{#f9e2af}‹%b›%f'
+zstyle ':vcs_info:git:*' actionformats ' %F{#f9e2af}‹%b|%a›%f'
 add-zsh-hook precmd vcs_info
 
+# Un seul « * » quel que soit le sale — indexé, modifié ou non suivi — là où
+# check-for-changes ignore le non suivi et en affiche deux. Un git status par prompt.
+zstyle ':vcs_info:git*+post-backend:*' hooks git-sale
++vi-git-sale() {
+	[[ -n $(git status --porcelain 2>/dev/null | head -1) ]] &&
+		hook_com[branch]+='%F{#f38ba8}*%F{#f9e2af}' && ret=1
+}
+
 setopt prompt_subst
-PROMPT='%F{#89b4fa}%~%f${vcs_info_msg_0_} %(?.%F{#a6e3a1}.%F{#f38ba8})❯%f '
+PROMPT='%(!.%F{#f38ba8}.%F{#a6e3a1})%n%f%F{#94e2d5}@%f%(!.%F{#f38ba8}.%F{#a6e3a1})%m%f %B%F{#89b4fa}%~%f%b${vcs_info_msg_0_} ➤ '
+RPROMPT='%(?..%F{#f38ba8}%? ↵%f)'
 
 # --- Plugins (paquets Debian) -------------------------------------------------
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#585b70'
