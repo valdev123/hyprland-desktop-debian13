@@ -2,6 +2,7 @@
 # Hyprland + hy3 sur Debian 13 (trixie) — installation complète.
 #
 #   ./install.sh              tout
+#   ./install.sh packages     seulement les paquets (backports + apt + shell zsh)
 #   ./install.sh hy3          seulement la recompilation du plugin
 #   ./install.sh dotfiles     seulement les dotfiles
 #   ./install.sh gnome        seulement la plomberie GNOME (trousseau, thème GTK)
@@ -31,6 +32,12 @@ case "$TARGET" in
 		"$REPO_DIR/scripts/06-greetd.sh"
 		"$REPO_DIR/scripts/07-apps.sh"
 		;;
+	packages)
+		sudo_prime
+		# 01 d'abord : sans les backports, apt ne voit aucun paquet Hyprland.
+		"$REPO_DIR/scripts/01-backports.sh"
+		"$REPO_DIR/scripts/02-packages.sh"
+		;;
 	hy3)
 		"$REPO_DIR/scripts/03-hy3.sh"
 		"$REPO_DIR/scripts/04-dotfiles.sh"
@@ -51,7 +58,7 @@ case "$TARGET" in
 		"$REPO_DIR/scripts/07-apps.sh"
 		;;
 	*)
-		die "Cible inconnue : $TARGET (attendu : all | hy3 | dotfiles | gnome | greetd | apps)"
+		die "Cible inconnue : $TARGET (attendu : all | packages | hy3 | dotfiles | gnome | greetd | apps)"
 		;;
 esac
 
@@ -66,7 +73,7 @@ $C_GREEN Installation terminée.$C_RESET
 
  Raccourcis de départ (Super = touche Windows), calqués sur i3 :
 
-     Super + Entrée       terminal (alacritty, qui ouvre tmux)
+     Super + Entrée       terminal (alacritty, qui ouvre tmux sous zsh)
      Super + D            lanceur (wofi)
      Super + Shift + Q    fermer la fenêtre
      Super + Shift + E    quitter Hyprland
@@ -84,8 +91,10 @@ $C_GREEN Installation terminée.$C_RESET
 
  Tes réglages à toi : les fichiers « local » de ~/.config (hypr/local.conf,
  waybar/local.jsonc, waybar/local.css, mako/local, alacritty/local.toml,
- tmux/local.conf). Ils sont lus en dernier, donc ils gagnent — et ils ne sont
- ni écrasés ni commités.
+ tmux/local.conf, zsh/local.zsh). Ils sont lus en dernier, donc ils gagnent —
+ et ils ne sont ni écrasés ni commités.
 
-$C_YELLOW Après chaque « apt upgrade » qui met à jour Hyprland : lance « hy3-rebuild ».$C_RESET
+$C_YELLOW Après chaque « apt upgrade » qui met à jour Hyprland : lance « hy3-rebuild ».
+ Et s'il met à jour tmux : « tmux kill-server », sinon le serveur resté en
+ mémoire refuse les clients de la nouvelle version.$C_RESET
 EOF

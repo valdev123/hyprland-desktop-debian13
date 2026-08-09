@@ -44,10 +44,17 @@ partagées avec Hyprland restent cohérentes.
 |---|---|
 | Session | `xdg-desktop-portal`, `xdg-desktop-portal-gtk`, `xwayland`, `qt6-wayland` |
 | Interface | `waybar` (barre), `wofi` (lanceur), `alacritty` (terminal), `mako-notifier` (notifications) |
+| Shell | `zsh`, `zsh-autosuggestions` (suggestion d'après l'historique), `zsh-syntax-highlighting` (coloration de la ligne) |
 | Outils | `grim` + `slurp` (captures), `wl-clipboard`, `brightnessctl`, `playerctl`, `tmux`, `jq`, `thunar`, `udiskie` (montage auto), `pavucontrol`, `blueman` |
 | Audio | `pipewire`, `pipewire-pulse`, `wireplumber` |
 | Réseau | `network-manager`, `network-manager-gnome` (`nm-applet`) |
 | Polices et icônes | `fonts-jetbrains-mono`, `fonts-font-awesome`, `fonts-noto-color-emoji`, `papirus-icon-theme` |
+
+## Étape 2 — shell de connexion
+
+`chsh -s /usr/bin/zsh` sur ton compte : la ligne de `/etc/passwd` change, rien
+d'autre. Bash reste installé, `~/.bashrc` et `~/.profile` restent intacts —
+`sudo chsh -s /bin/bash $USER` rend la machine à l'état d'avant.
 
 ## Étape 2 — chaîne de compilation de hy3
 
@@ -74,6 +81,10 @@ dans `~/.local/bin/` :
 |---|---|
 | `hy3-rebuild` | recompile hy3 après une mise à jour d'Hyprland |
 | `hypr-monitors` | lit la disposition des écrans, l'écrit dans `monitors.conf` |
+
+Un seul fichier est écrit hors de `~/.config` : `~/.zshenv`, trois lignes qui
+posent `ZDOTDIR=~/.config/zsh`. C'est le seul emplacement que zsh impose. Un
+`~/.zshenv` préexistant est sauvegardé en `~/.zshenv.bak`.
 
 ## Étape 5 — plomberie GNOME
 
@@ -127,9 +138,10 @@ Zed vit hors d'apt : `apt upgrade` ne le met pas à jour, il s'en charge lui-mê
 
 Il n'y a pas de script pour ça. Les paquets se retirent avec
 `sudo apt purge --autoremove <liste>` ; le reste tient dans quatre chemins :
-`~/.config/{hypr,waybar,wofi,alacritty,tmux,mako}` (des liens),
+`~/.config/{hypr,waybar,wofi,alacritty,tmux,mako,zsh}` (des liens),
 `~/.local/share/hy3-src`, `~/.local/share/hyprland/plugins`,
-`~/.local/bin/{hy3-rebuild,hypr-monitors}` — plus `~/.local/zed.app` et
-`~/.local/bin/zed`. Côté système, `/etc/greetd/config.toml` et `/etc/pam.d/greetd`
-ont chacun un `.bak` ; les dépôts tiers se retirent en supprimant leur `.sources`
-et leur clé.
+`~/.local/bin/{hy3-rebuild,hypr-monitors}` — plus `~/.local/zed.app`,
+`~/.local/bin/zed` et `~/.zshenv`. Le shell de connexion se rend avec
+`sudo chsh -s /bin/bash $USER`. Côté système, `/etc/greetd/config.toml` et
+`/etc/pam.d/greetd` ont chacun un `.bak` ; les dépôts tiers se retirent en
+supprimant leur `.sources` et leur clé.

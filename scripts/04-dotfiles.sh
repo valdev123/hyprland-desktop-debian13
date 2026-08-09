@@ -343,6 +343,33 @@ creer_si_absent "$CONFIG_SRC/tmux/local.conf" <<-'EOF'
 	#     set -g prefix C-a
 EOF
 
+creer_si_absent "$CONFIG_SRC/zsh/local.zsh" <<-'EOF'
+	# Tes réglages zsh. Ignoré par git.
+	# Sourcé en dernier par .zshrc : la dernière valeur écrite gagne.
+	#
+	#     alias gs='git status'
+EOF
+
+# --- Le pointeur que zsh impose dans $HOME ------------------------------------
+# zsh ne lit que ~/.zshrc ; ~/.zshenv est le seul fichier par lequel le renvoyer
+# vers ~/.config/zsh, donc le seul qui ne puisse pas vivre dans le dépôt.
+ZSHENV="$HOME/.zshenv"
+LIGNE_ZDOTDIR='export ZDOTDIR="$HOME/.config/zsh"'
+
+if [[ -f "$ZSHENV" ]] && grep -qxF "$LIGNE_ZDOTDIR" "$ZSHENV"; then
+	ok "~/.zshenv (déjà en place)"
+else
+	if [[ -e "$ZSHENV" ]]; then
+		cp "$ZSHENV" "$ZSHENV.bak"
+		warn "~/.zshenv existait → sauvegardé en ~/.zshenv.bak"
+	fi
+	printf '%s\n' \
+		'# Écrit par scripts/04-dotfiles.sh. Renvoie zsh vers ~/.config/zsh,' \
+		'# lié au dépôt — le reste de la config est là-bas.' \
+		"$LIGNE_ZDOTDIR" > "$ZSHENV"
+	ok "~/.zshenv → ZDOTDIR=~/.config/zsh"
+fi
+
 # --- Commandes du dépôt dans le PATH ------------------------------------------
 mkdir -p "$HOME/.local/bin"
 for cmd in hy3-rebuild hypr-monitors; do
@@ -351,5 +378,5 @@ for cmd in hy3-rebuild hypr-monitors; do
 done
 
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-	warn "~/.local/bin n'est pas dans ton PATH — ajoute-le à ton ~/.bashrc pour utiliser « hy3-rebuild »."
+	warn "~/.local/bin n'est pas dans ton PATH — le .zshrc du dépôt l'ajoute, ouvre un nouveau terminal pour utiliser « hy3-rebuild »."
 fi

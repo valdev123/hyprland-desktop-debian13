@@ -27,6 +27,8 @@ MAIN_PKGS=(
 	xdg-desktop-portal xdg-desktop-portal-gtk xwayland qt6-wayland
 	# Interface
 	waybar wofi alacritty mako-notifier
+	# Shell
+	zsh zsh-autosuggestions zsh-syntax-highlighting
 	# Outils
 	grim slurp wl-clipboard brightnessctl playerctl
 	tmux
@@ -77,6 +79,21 @@ sudo apt-get install -y "${APT_TARGET[@]}" "${MAIN_PKGS[@]}"
 
 log "Chaîne de compilation pour hy3 (${#BUILD_PKGS[@]})"
 sudo apt-get install -y "${APT_TARGET[@]}" "${BUILD_PKGS[@]}"
+
+# --- zsh comme shell de connexion ---------------------------------------------
+# Ici et pas dans 04-dotfiles.sh, qui n'a pas le ticket sudo : « chsh » sur son
+# propre compte réclame sinon le mot de passe utilisateur.
+ZSH_BIN="$(command -v zsh || true)"
+SHELL_ACTUEL="$(getent passwd "$USER" | cut -d: -f7)"
+
+if [[ -z "$ZSH_BIN" ]]; then
+	warn "zsh introuvable après installation — shell de connexion laissé sur $SHELL_ACTUEL."
+elif [[ "$SHELL_ACTUEL" == "$ZSH_BIN" ]]; then
+	ok "shell de connexion : déjà $ZSH_BIN"
+else
+	sudo chsh -s "$ZSH_BIN" "$USER"
+	ok "shell de connexion : $SHELL_ACTUEL → $ZSH_BIN (effectif à la prochaine connexion)"
+fi
 
 # Sécurise l'audio et le réseau pour la première session.
 systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || \

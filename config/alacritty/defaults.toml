@@ -4,11 +4,11 @@
 opacity = 0.95
 padding = { x = 8, y = 8 }
 
-# tmux à l'ouverture, une session neuve par fenêtre. Le repli sur bash évite de
+# tmux à l'ouverture, une session neuve par fenêtre. Le repli sur zsh évite de
 # se retrouver sans terminal si tmux refuse de démarrer (tmux.conf invalide).
 [terminal.shell]
-program = "bash"
-args = ["-c", "tmux new-session || exec bash"]
+program = "zsh"
+args = ["-c", "tmux new-session || exec zsh"]
 
 [font]
 size = 11.0

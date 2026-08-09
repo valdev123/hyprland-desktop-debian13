@@ -29,6 +29,7 @@ config/waybar/local.css
 config/mako/local
 config/alacritty/local.toml
 config/tmux/local.conf
+config/zsh/local.zsh
 
 # Artefacts de compilation, au cas où hy3 serait compilé dans le dépôt.
 build/

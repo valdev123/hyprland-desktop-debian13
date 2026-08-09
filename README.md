@@ -1,10 +1,9 @@
 # hyprland-desktop-debian13
 
 Un **environnement de bureau complet** sous **Hyprland**, sur **Debian 13
-(trixie)** : le compositeur pavé, ses raccourcis calqués sur i3, et tout ce qu'un
+(trixie)** : le compositeur pavé, ses raccourcis calqués sur i3, et ce qu'un
 bureau exige pour être utilisable — barre, lanceur, terminal, notifications,
-verrouillage, audio, réseau, trousseau, écran de connexion. Le tout en dotfiles
-versionnés.
+verrouillage, audio, réseau, trousseau, écran de connexion.
 
 ```bash
 git clone <ton-repo> ~/hyprland-desktop-debian13
@@ -14,141 +13,80 @@ cd ~/hyprland-desktop-debian13
 
 Puis, depuis un TTY : `Hyprland`.
 
-Une session Hyprland nue n'est qu'un compositeur : pas de barre, pas de son, pas
-de mot de passe retenu, des applications GTK en thème clair. L'essentiel du
-travail ici est cette seconde couche, pas l'installation d'Hyprland — qui tient
-en une ligne d'`apt`. Le plugin **hy3**, lui, se compile : c'est la seule pièce
-que Debian n'empaquette pas.
-
-Ce que le dépôt n'installe pas, délibérément : les pilotes GPU.
+Les pilotes GPU ne sont pas installés, délibérément.
 
 ---
 
-## Ce que fait le script
+## Les 7 étapes
 
 | Étape | Script | Contenu |
 |---|---|---|
-| 1 | `scripts/01-backports.sh` | Active `trixie-backports` |
-| 2 | `scripts/02-packages.sh` | Hyprland + hyprlock/hypridle/hyprpaper/portail, puis waybar, alacritty, wofi, mako, tmux, pipewire, NetworkManager… |
-| 3 | `scripts/03-hy3.sh` | Compile hy3 contre l'Hyprland installé, pose `libhy3.so` |
-| 4 | `scripts/04-dotfiles.sh` | Lie `config/` à `~/.config/` (sauvegarde l'existant) |
-| 5 | `scripts/05-gnome.sh` | Plomberie GNOME : trousseau, thème GTK sombre, portail |
-| 6 | `scripts/06-greetd.sh` | Écran de connexion greetd + tuigreet |
-| 7 | `scripts/07-apps.sh` | Applications hors Debian : VS Code, Google Chrome, Zed |
+| 1 | `01-backports.sh` | Active `trixie-backports` |
+| 2 | `02-packages.sh` | Hyprland et son écosystème, puis waybar, alacritty, wofi, mako, zsh, tmux, pipewire, NetworkManager… ; passe le shell de connexion à zsh |
+| 3 | `03-hy3.sh` | Compile hy3 contre l'Hyprland installé |
+| 4 | `04-dotfiles.sh` | Lie `config/` à `~/.config/` (sauvegarde l'existant) |
+| 5 | `05-gnome.sh` | Plomberie GNOME : trousseau, thème GTK sombre, portail |
+| 6 | `06-greetd.sh` | Écran de connexion greetd + tuigreet |
+| 7 | `07-apps.sh` | VS Code, Google Chrome, Zed — les trois qui échappent à Debian |
 
-Le script est **idempotent** : le relancer ne casse rien. On peut n'en rejouer
-qu'une partie : `./install.sh hy3`, `./install.sh dotfiles`, `./install.sh gnome`,
-`./install.sh greetd`, `./install.sh apps`.
+**Idempotent** : le relancer ne casse rien. Cibles partielles : `packages`,
+`hy3`, `dotfiles`, `gnome`, `greetd`, `apps` — `packages` rejoue l'étape 1 avant
+la 2, sans les backports apt ne voit aucun paquet Hyprland.
 
-L'inventaire complet de ce qui atterrit sur la machine — paquet par paquet,
-chemin par chemin — est dans [PAQUETS.md](PAQUETS.md).
-
-### Étape 5 — la « plomberie GNOME », qui n'est pas GNOME
-
-Un bureau se compose de trois couches indépendantes, et il est facile de les
-confondre :
-
-1. **L'écran de connexion** (étape 6) — choisit ta session au démarrage.
-2. **La plomberie** (étape 5) — des services sans interface : trousseau de mots
-   de passe (`gnome-keyring`), réglages GTK (`gsettings` / `dconf` : thème
-   sombre, police, curseur), portails (sélecteur de fichiers, partage d'écran).
-3. **Le bureau** — GNOME Shell, KDE, **ou Hyprland**. Un seul à la fois.
-
-La couche 2 vient historiquement de GNOME mais **n'est pas** GNOME : Hyprland,
-Sway et KDE s'en servent tous. C'est précisément ce qui manque à une session
-Hyprland nue — sans elle, les applis GTK restent en thème clair et beaucoup
-d'applications redemandent tes mots de passe à chaque lancement. Aucun GNOME
-Shell n'est installé, rien ne concurrence Hyprland.
-
-### Étape 6 — l'écran de connexion
-
-`greetd` + `tuigreet` remplacent la connexion en TTY par un menu de session. Les
-sessions proposées sont lues dans `/usr/share/wayland-sessions/`, où le paquet
-Debian d'Hyprland dépose `hyprland.desktop` — **Sway y figure aussi** s'il est
-installé, donc les deux apparaissent sans rien déclarer.
-
-greetd tourne sur le **TTY 7**, délibérément : les TTY 1 à 6 gardent leur invite
-texte. Si une session graphique refuse de démarrer, `Ctrl`+`Alt`+`F2` donne
-toujours un shell. Pour revenir en arrière : `sudo systemctl disable greetd`.
-
-Le trousseau est branché sur PAM (`/etc/pam.d/greetd`) pour se déverrouiller avec
-ton mot de passe de session, au lieu d'en réclamer un second. Les deux lignes
-ajoutées sont `optional` : si le module échoue, PAM les ignore — elles ne peuvent
-pas te verrouiller dehors. L'original est sauvegardé en `.bak`.
-
-### Étape 7 — les applications qui ne sont pas dans Debian
-
-Le terminal, le multiplexeur et le reste du bureau viennent d'`apt` comme tout le
-monde. Trois outils échappent à Debian, et chacun pour une raison différente :
-
-- **VS Code** et **Google Chrome** sont propriétaires (ou binaires seulement) :
-  Microsoft et Google publient chacun un dépôt APT. On l'ajoute au format deb822,
-  clé désarmée dans `/etc/apt/keyrings/`. Chromium et VSCodium, eux, sont dans
-  Debian — ce ne sont simplement pas ces logiciels-là.
-- **Zed** n'a ni paquet ni dépôt : seulement l'installeur officiel, qui pose tout
-  dans `~/.local` sans root. Contrepartie assumée : `apt upgrade` ne le verra
-  jamais, Zed se met à jour lui-même.
-
-Le piège de l'étape est ailleurs. Les paquets Google et Microsoft **réinstallent
-leur propre dépôt** à chaque mise à jour, au format `.list` : le dépôt se
-retrouve déclaré deux fois et apt le signale à chaque `update`. D'où
-`/etc/default/google-chrome` (`repo_add_once=false`), seul interrupteur que
-Chrome respecte, et la neutralisation du `.list` s'il réapparaît.
+Inventaire complet de ce qui atterrit sur la machine, paquet par paquet et chemin
+par chemin : [PAQUETS.md](PAQUETS.md).
 
 ---
 
-## Les deux choses à savoir
+## Ce qu'il faut savoir
 
-### 1. Hyprland n'est pas dans Debian 13 stable
+### Hyprland n'est pas dans Debian 13 stable
 
-Il n'existe **aucun** paquet `hyprland` dans `trixie/main` — beaucoup de guides
-laissent croire le contraire. Le seul Hyprland empaqueté par Debian vit dans
-**`trixie-backports`** (0.55.2 au 14/07/2026), avec tout son écosystème :
-`hyprlock`, `hypridle`, `hyprpaper`, `hyprpolkitagent`,
-`xdg-desktop-portal-hyprland`, et même quelques plugins officiels.
+Il n'existe **aucun** paquet dans `trixie/main`, contrairement à ce que laissent
+croire beaucoup de guides : le seul Hyprland empaqueté vit dans
+**`trixie-backports`** (0.55.2), avec `hyprlock`, `hypridle`, `hyprpaper`,
+`hyprpolkitagent` et le portail. Mais pas hy3 — d'où l'étape 3.
 
-Mais **pas hy3** : celui-là, il faut le compiler. D'où l'étape 3.
+### Le tag hy3 ne se code pas en dur
 
-### 2. Le tag hy3 ne se code pas en dur
+On lit partout `git checkout hl<version d'Hyprland>`. **C'est faux** : hy3 ne
+publie pas un tag par version d'Hyprland — Debian livre **0.55.2** quand le
+dernier tag hy3 est **`hl0.55.0`**, sur lequel un `checkout` échoue.
+`03-hy3.sh` résout donc le tag **à l'exécution** : le plus haut tag inférieur ou
+égal à la version installée.
 
-On lit partout `git checkout hl<version d'Hyprland>`. **C'est faux.** hy3 ne
-publie pas un tag par version d'Hyprland : Debian livre Hyprland **0.55.2**
-alors que le dernier tag hy3 est **`hl0.55.0`**. `hl0.55.2` n'existe pas, et un
-`checkout` dessus échoue.
+Et ça charge quand même, parce que le contrôle de compatibilité ne regarde pas le
+nom du tag : hy3 compare le **hash du compositeur en cours** avec celui compilé
+dans le `.so`, issu des headers de `hyprland-dev`. Comme on compile contre
+l'Hyprland réellement installé, les deux coïncident. D'où la seule vraie
+contrainte à retenir :
 
-`scripts/03-hy3.sh` résout donc le tag **à l'exécution** : il prend le plus haut
-tag hy3 inférieur ou égal à la version d'Hyprland installée.
+> **Après chaque mise à jour d'Hyprland, relance `hy3-rebuild`.** Sinon les hash
+> divergent, Hyprland refuse le plugin et tu retombes sur `dwindle`.
 
-**Et ça charge quand même**, parce que le contrôle de compatibilité de hy3 ne
-regarde pas le nom du tag. Au chargement, le plugin compare le hash du
-compositeur en cours d'exécution avec un hash compilé dans le `.so`, qui provient
-des **headers de `hyprland-dev`** (`src/main.cpp` : `COMPOSITOR_HASH` vs
-`CLIENT_HASH`). Comme on compile contre les headers de l'Hyprland réellement
-installé, les deux coïncident. Le tag ne sert qu'à choisir une version du *code
-source* de hy3 compatible avec l'API.
+### L'étape 5 n'installe pas GNOME
 
-Conséquence directe, et c'est la seule vraie contrainte à retenir :
+Elle pose une couche de services **sans interface** — trousseau
+(`gnome-keyring`), réglages GTK (thème sombre, police, curseur), portails
+(sélecteur de fichiers, partage d'écran) — que Sway et KDE utilisent tout autant.
+C'est ce qui manque à une session Hyprland nue : sans elle, les applis GTK
+restent en thème clair et les mots de passe sont redemandés à chaque lancement.
+Aucun GNOME Shell n'est installé, rien ne concurrence Hyprland.
 
-> **Après chaque mise à jour d'Hyprland, relance `hy3-rebuild`.**
-> Sinon les hash divergent et Hyprland refuse de charger le plugin — notification
-> rouge « *hy3 was compiled for a different version of hyprland* », et tu
-> retombes sur la disposition `dwindle`.
+### greetd tourne sur le TTY 7
 
-```bash
-sudo apt upgrade      # Hyprland passe de 0.55.2 à 0.56.x
-hy3-rebuild           # recompile, réinstalle, recharge
-```
+Délibérément : les TTY 1 à 6 gardent leur invite texte, donc `Ctrl`+`Alt`+`F2`
+donne toujours un shell si la session graphique refuse de démarrer. Les sessions
+proposées sont lues dans `/usr/share/wayland-sessions/` — Sway y figure aussi
+s'il est installé. Pour revenir en arrière : `sudo systemctl disable greetd`.
 
 ---
 
 ## Raccourcis
 
 `Super` = touche Windows. La disposition du clavier est **détectée**, pas
-imposée : les touches ci-dessous sont celles d'un AZERTY (le cas de cette
-machine), les tableaux marqués ¹ changent ailleurs.
-
-Calqués sur i3, aux trois écarts près que `binds.conf` documente (pas de mode
-*stacking*, pas de `Mod+Space`, et `Mod+Shift+E` ne demande pas confirmation).
+imposée : les touches ci-dessous sont celles d'un AZERTY, les lignes marquées ¹
+changent ailleurs.
 
 | Touches | Action |
 |---|---|
@@ -171,7 +109,7 @@ Calqués sur i3, aux trois écarts près que `binds.conf` documente (pas de mode
 | `Impr. écran` | capture d'une zone → presse-papier |
 
 Tout est dans `config/hypr/binds.conf`, modifiable à chaud (`hyprctl reload`) —
-sauf les lignes ¹, générées dans `keyboard.conf` (voir plus bas).
+sauf les lignes ¹, générées dans `keyboard.conf`.
 
 ---
 
@@ -187,153 +125,102 @@ config/                 dotfiles, liés dans ~/.config
   hypr/       hyprland.conf, binds.conf, hy3.conf, hyprlock, hypridle, hyprpaper
   waybar/     config.jsonc (shim), defaults.jsonc, style.css
   alacritty/  alacritty.toml (shim), defaults.toml
+  zsh/        .zshrc
   tmux/       mako/    wofi/
 ```
 
-Tout ce qui dépend de la machine est **généré** par `./install.sh dotfiles` et
-ignoré par git : `plugins.conf`, `gpu.conf`, `keyboard.conf`,
-`hypridle-local.conf`, `waybar/machine.jsonc` — plus `monitors.conf`, écrit une
-seule fois. Voir « Ce qui dépend de la machine ».
+Alacritty n'ouvre pas un shell mais `tmux new-session` — une session neuve par
+fenêtre. C'est réglé côté Alacritty et non dans le `.zshrc`, pour que les
+terminaux intégrés de VS Code et Zed gardent un shell nu.
 
-### Le terminal ouvre tmux
-
-Alacritty ne lance pas un shell mais `tmux new-session` — une session neuve par
-fenêtre, jamais deux fenêtres sur la même session : sous un gestionnaire
-tuilant, un miroir dont les deux moitiés se contraignent en taille n'a pas de
-sens.
-
-C'est branché côté **Alacritty**, pas dans `~/.bashrc`. Deux raisons : le
-réglage reste dans le dépôt, versionné avec le reste ; et les terminaux
-intégrés de VS Code et Zed continuent d'ouvrir un shell nu, ce qu'un
-`~/.bashrc` leur imposerait aussi. Pour t'en passer, redéfinis
-`[terminal.shell]` dans `alacritty/local.toml`.
+Le shell de connexion est zsh (`chsh` à l'étape 2 ; `sudo chsh -s /bin/bash
+$USER` pour revenir). Comme zsh ne lit que `~/.zshrc`, l'étape 4 écrit un
+`~/.zshenv` de trois lignes qui pose `ZDOTDIR=~/.config/zsh` : c'est le seul
+fichier dont zsh impose l'emplacement, donc le seul qui ne puisse pas vivre dans
+le dépôt.
 
 ### Tes réglages : les fichiers `local`
 
-Les dotfiles sont déployés par **liens symboliques** : `~/.config/hypr` pointe
-dans ce dépôt. Éditer sa config, c'est donc éditer le dépôt — personnaliser et
-suivre l'amont deviennent la même action, et chaque `git pull` devient un
-conflit.
-
-D'où un fichier `local` par programme, ignoré par git, **lu en dernier** — c'est
-lui qui gagne :
+Les dotfiles sont déployés par **liens symboliques** : éditer sa config, c'est
+éditer le dépôt, et chaque `git pull` deviendrait un conflit. D'où un fichier
+`local` par programme, ignoré par git et **lu en dernier** — c'est lui qui gagne :
 
 ```
 hypr/local.conf      waybar/local.jsonc    waybar/local.css
 mako/local           alacritty/local.toml  tmux/local.conf
+zsh/local.zsh
 ```
-
-Mets-y tes réglages : le fichier versionné reste identique pour tout le monde,
-ce qui diffère vit à côté. Aucun conflit, et **aucune branche à maintenir** —
-c'est ce qui rend ce dépôt clonable. Le motif n'est pas nouveau, `plugins.conf`
-le fait déjà.
 
 Trois choses que le code ne peut pas dire :
 
 - **waybar et alacritty sont coupés en deux** (`config.jsonc` et `alacritty.toml`
-  ne règlent rien, tout est dans `defaults.jsonc` / `defaults.toml`). Waybar donne
-  raison au **premier** qui définit une clé ; Alacritty, lui, charge ses imports
-  d'abord et laisse gagner **le fichier qui importe**. Dans les deux cas, un
-  fichier inclus ne peut pas battre celui qui l'inclut : sans ce shim vide,
-  aucune surcharge personnelle ne serait possible.
-- **Ces fichiers sont créés une fois puis jamais régénérés**, contrairement à
-  `plugins.conf` et `gpu.conf` : ils contiennent ton travail.
-- **Un `git pull` qui ajoute un nouveau `local` exige `./install.sh dotfiles`.**
-  Sinon mako, qui refuse de démarrer sur un include introuvable, reste muet sans
-  prévenir.
+  ne règlent rien) : dans les deux cas un fichier inclus ne peut pas battre celui
+  qui l'inclut, sans ce shim vide aucune surcharge ne serait possible.
+- **Ces fichiers sont créés une fois puis jamais régénérés** : ils contiennent ton
+  travail.
+- **Un `git pull` qui ajoute un nouveau `local` exige `./install.sh dotfiles`**,
+  sinon mako, qui refuse de démarrer sur un include introuvable, reste muet.
 
-**wofi est l'exception** : il charge son CSS avec `load_from_data`, donc GTK
-résout un `@import` relatif depuis le *répertoire courant de wofi* et non depuis
-`style.css` — et il ne développe pas `~`. Un import y serait donc soit cassé,
-soit dépendant d'où wofi a été lancé, et un import mort fait tomber toute la
-feuille sans un mot dans les logs. Ses 43 lignes cosmétiques s'éditent donc
-directement.
-
----
-
-## Dépannage
-
-**Hyprland démarre mais les fenêtres ne se découpent pas comme prévu**
-Le plugin n'est pas chargé — Hyprland est retombé sur `dwindle`.
-
-```bash
-hyprctl plugin list          # hy3 doit apparaître
-hy3-rebuild
-```
-
-**« hy3 was compiled for a different version of hyprland »**
-Hyprland a été mis à jour sans recompilation du plugin : `hy3-rebuild`.
-
-**La compilation de hy3 échoue**
-Soit `libpango1.0-dev` manque (hy3 exige `pango` et `pangocairo` en pkg-config,
-et `hyprland-dev` ne les tire pas), soit l'API d'Hyprland a bougé et hy3 n'a pas
-encore de tag pour cette version. Regarde
-[les releases hy3](https://github.com/outfoxxed/hy3/releases). On peut forcer un
-tag :
-
-```bash
-HY3_TAG=hl0.55.0 ./install.sh hy3
-```
-
-**Écran noir au lancement**
-Vérifie que le GPU est bien pris en charge : `lspci -k | grep -A3 VGA` doit
-montrer `amdgpu`. Sur une carte NVIDIA, regarde d'abord `~/.config/hypr/gpu.conf`
-(voir plus bas) et que `nvidia-driver` est installé — ce dépôt ne l'installe pas.
-
-**Retrouver ses anciennes configs**
-Elles sont dans `~/.config-backup-<date>/`, jamais supprimées.
+**wofi est l'exception** : il charge son CSS avec `load_from_data`, donc un
+`@import` y serait résolu depuis son répertoire courant et non depuis
+`style.css`. Ses 43 lignes cosmétiques s'éditent directement.
 
 ---
 
 ## Ce qui dépend de la machine
 
-Un réglage qui dépend de la machine n'a rien à faire dans le dépôt : il ne peut
-qu'y être faux pour tous les autres, et faux pour toi-même le jour où tu changes
-de matériel. `04-dotfiles.sh` interroge donc le système et écrit ce qu'il trouve
-dans des fichiers non versionnés, sur le modèle de `plugins.conf`.
+Un réglage propre à une machine ne peut qu'être faux ailleurs — et faux ici le
+jour où le matériel change. `04-dotfiles.sh` interroge donc le système et écrit
+ce qu'il trouve dans des fichiers non versionnés, régénérés à chaque passage :
 
 | Fichier | Lu dans | Ce qu'il évite |
 |---|---|---|
 | `hypr/gpu.conf` | `/sys/class/drm` | Des variables NVIDIA sur une carte AMD, où elles cassent le rendu |
-| `hypr/keyboard.conf` | `/etc/default/keyboard` | Une rangée de bureaux inatteignable |
+| `hypr/keyboard.conf` | `/etc/default/keyboard` | Une rangée de bureaux inatteignable : sur AZERTY, `Super`+`1` envoie `&` |
 | `hypr/hypridle-local.conf` | `/sys/class/power_supply` | Une tour qui se suspend, ou un portable qui vide sa batterie |
 | `waybar/machine.jsonc` | idem | Un module batterie vide sur une tour |
 | `hypr/monitors.conf` | `hypr-monitors save` | Des noms de sortie (`DP-1`, `eDP-1`) qui ne valent que sur une machine |
 
-Chacun se régénère à chaque `./install.sh dotfiles` — sauf `monitors.conf`, qui
-contient un choix et se comporte donc comme un fichier `local`.
+`monitors.conf` fait exception : il contient un choix, donc il se comporte comme
+un fichier `local` et n'est écrit qu'une fois.
 
-### Pourquoi les bureaux ne sont pas versionnables
+Cette machine : **Radeon RX 6950 XT** (pilote libre `amdgpu`, `gpu.conf` sort
+vide) et **wifi Broadcom BCM4360**, qui exige `broadcom-sta-dkms` et un **Secure
+Boot désactivé**. Le chemin NVIDIA n'a jamais tourné — pour l'exercer sans le
+matériel : `HY3_GPU=nvidia`, `HY3_KEYBOARD=us`, `HY3_LAPTOP=1`.
 
-C'est le cas le moins évident. Sur un clavier QWERTY, `Super+1` suffit ; sur
-AZERTY, cette touche envoie `&` et le chiffre exige `Shift`. Ce ne sont donc pas
-les mêmes noms de touches XKB (`ampersand`, `eacute`, `quotedbl`… contre `1`,
-`2`, `3`), et aucune des deux écritures ne peut servir l'autre. Même chose pour
-la direction « droite » de la rangée de repos : i3 la met sur la touche à droite
-du `L`, qui est `M` en AZERTY et `;` en QWERTY.
+---
 
-`keyboard.conf` est sourcé **après** `binds.conf`, dont il réutilise le `$mod`,
-et rouvre au passage le `submap` de redimensionnement pour y ajouter les mêmes
-touches.
+## Dépannage
 
-### Pourquoi `machine.jsonc` s'intercale au milieu de waybar
+**Les fenêtres ne se découpent pas comme prévu**
+Le plugin n'est pas chargé, Hyprland est retombé sur `dwindle` :
+`hyprctl plugin list`, puis `hy3-rebuild`.
 
-Waybar donne raison au **premier** qui définit une clé (voir plus haut). L'ordre
-des `include` est donc un ordre de priorité, et celui-ci se lit de gauche à
-droite : `local.jsonc` → `machine.jsonc` → `defaults.jsonc`. Ce que la machine
-impose bat les valeurs par défaut, mais reste dépassable à la main.
+**« hy3 was compiled for a different version of hyprland »**
+Hyprland a été mis à jour sans recompilation : `hy3-rebuild`.
 
-### Cette machine en particulier
+**La compilation de hy3 échoue**
+Soit `libpango1.0-dev` manque (hy3 l'exige, `hyprland-dev` ne le tire pas), soit
+l'API a bougé et hy3 n'a pas encore de tag pour cette version — voir
+[les releases](https://github.com/outfoxxed/hy3/releases). On peut forcer un
+tag : `HY3_TAG=hl0.55.0 ./install.sh hy3`.
 
-- **Radeon RX 6950 XT** : pilote libre `amdgpu`, `gpu.conf` sort donc vide.
-- **Wifi Broadcom BCM4360** : nécessite `broadcom-sta-dkms` et un **Secure Boot
-  désactivé** (module non signé). Sans rapport avec Hyprland, mais c'est ce qui
-  fournit le réseau.
+**Écran noir au lancement**
+`lspci -k | grep -A3 VGA` doit montrer `amdgpu`. Sur NVIDIA, vérifie
+`~/.config/hypr/gpu.conf` et que `nvidia-driver` est installé — ce dépôt ne
+l'installe pas.
 
-Le chemin NVIDIA, lui, n'a jamais tourné : le fichier produit est vérifié, le
-comportement d'Hyprland dessus ne l'est pas — `04-dotfiles.sh` le dit à
-l'exécution. Pour l'exercer sans le matériel : `HY3_GPU=nvidia`,
-`HY3_KEYBOARD=us` et `HY3_LAPTOP=1` forcent chacune une détection.
+**« open terminal failed: not a terminal »**
+Un `apt upgrade` a remplacé le binaire tmux pendant qu'un serveur tournait : le
+client neuf ne sait plus lui parler, la session est créée mais jamais attachée.
+Compare `tmux -V` et `tmux display-message -p '#{version}'`, puis
+`tmux kill-server` — les sessions ouvertes sont perdues.
+
+**Retrouver ses anciennes configs**
+Dans `~/.config-backup-<date>/`, jamais supprimées.
+
+---
 
 ## Liens
 
