@@ -109,7 +109,9 @@ hy3-rebuild           # recompile, réinstalle, recharge
 
 ## Raccourcis
 
-`Super` = touche Windows. Clavier **AZERTY** (`kb_layout = fr`).
+`Super` = touche Windows. La disposition du clavier est **détectée**, pas
+imposée : les touches ci-dessous sont celles d'un AZERTY (le cas de cette
+machine), les tableaux marqués ¹ changent ailleurs.
 
 Calqués sur i3, aux trois écarts près que `binds.conf` documente (pas de mode
 *stacking*, pas de `Mod+Space`, et `Mod+Shift+E` ne demande pas confirmation).
@@ -126,15 +128,16 @@ Calqués sur i3, aux trois écarts près que `binds.conf` documente (pas de mode
 | `Super` + `S` | basculer onglets ↔ découpe *(hy3)* |
 | `Super` + `Tab` | onglet suivant *(hy3)* |
 | `Super` + `A` / `Shift`+`A` | remonter / redescendre dans l'arbre *(hy3)* |
-| `Super` + `J` `K` `L` `M` ou flèches | changer de fenêtre |
+| `Super` + `J` `K` `L` `M` ¹ ou flèches | changer de fenêtre |
 | `Super` + `Shift` + idem | déplacer la fenêtre |
 | `Super` + `R` | mode redimensionnement, `Échap` pour sortir |
 | `Super` + `F` | plein écran |
-| `Super` + `&` … `ç` | bureaux 1 à 9 |
+| `Super` + `&` … `ç` ¹ | bureaux 1 à 9 |
 | `Super` + `Ctrl` + `L` | verrouiller *(`Super`+`L` sert au focus)* |
 | `Impr. écran` | capture d'une zone → presse-papier |
 
-Tout est dans `config/hypr/binds.conf`, modifiable à chaud (`hyprctl reload`).
+Tout est dans `config/hypr/binds.conf`, modifiable à chaud (`hyprctl reload`) —
+sauf les lignes ¹, générées dans `keyboard.conf` (voir plus bas).
 
 ---
 
@@ -143,16 +146,19 @@ Tout est dans `config/hypr/binds.conf`, modifiable à chaud (`hyprctl reload`).
 ```
 install.sh              orchestrateur
 bin/hy3-rebuild         recompile hy3 après une mise à jour d'Hyprland
-lib/common.sh           logs, garde-fous, helpers apt
-scripts/                les 4 étapes
+bin/hypr-monitors       fige la disposition des écrans dans monitors.conf
+lib/common.sh           logs, garde-fous, détection matérielle, helpers apt
+scripts/                les 6 étapes
 config/                 dotfiles, liés dans ~/.config
   hypr/    hyprland.conf, binds.conf, hy3.conf, hyprlock, hypridle, hyprpaper
   waybar/  config.jsonc (shim), defaults.jsonc, style.css
   foot/    mako/    wofi/
 ```
 
-`config/hypr/plugins.conf` est **généré** (chemin absolu du `.so`, propre à la
-machine) et ignoré par git.
+Tout ce qui dépend de la machine est **généré** par `./install.sh dotfiles` et
+ignoré par git : `plugins.conf`, `gpu.conf`, `keyboard.conf`,
+`hypridle-local.conf`, `waybar/machine.jsonc` — plus `monitors.conf`, écrit une
+seule fois. Voir « Ce qui dépend de la machine ».
 
 ### Tes réglages : les fichiers `local`
 
@@ -229,18 +235,55 @@ Elles sont dans `~/.config-backup-<date>/`, jamais supprimées.
 
 ---
 
-## Notes matérielles (cette machine)
+## Ce qui dépend de la machine
 
-- **GPU Radeon RX 6950 XT** : pilote libre `amdgpu`, rien à configurer.
+Un réglage qui dépend de la machine n'a rien à faire dans le dépôt : il ne peut
+qu'y être faux pour tous les autres, et faux pour toi-même le jour où tu changes
+de matériel. `04-dotfiles.sh` interroge donc le système et écrit ce qu'il trouve
+dans des fichiers non versionnés, sur le modèle de `plugins.conf`.
 
-  Rien à configurer *ici* : c'est vrai sur AMD et Intel, faux sur NVIDIA, qui
-  réclame des variables d'environnement. Plutôt que de graver le cas AMD dans la
-  config versionnée, `04-dotfiles.sh` lit le vendeur dans `/sys/class/drm` et
-  génère `config/hypr/gpu.conf`, non versionné comme `plugins.conf` — sur AMD il
-  est vide. Un réglage qui dépend de la machine n'a rien à faire dans le dépôt.
+| Fichier | Lu dans | Ce qu'il évite |
+|---|---|---|
+| `hypr/gpu.conf` | `/sys/class/drm` | Des variables NVIDIA sur une carte AMD, où elles cassent le rendu |
+| `hypr/keyboard.conf` | `/etc/default/keyboard` | Une rangée de bureaux inatteignable |
+| `hypr/hypridle-local.conf` | `/sys/class/power_supply` | Une tour qui se suspend, ou un portable qui vide sa batterie |
+| `waybar/machine.jsonc` | idem | Un module batterie vide sur une tour |
+| `hypr/monitors.conf` | `hypr-monitors save` | Des noms de sortie (`DP-1`, `eDP-1`) qui ne valent que sur une machine |
+
+Chacun se régénère à chaque `./install.sh dotfiles` — sauf `monitors.conf`, qui
+contient un choix et se comporte donc comme un fichier `local`.
+
+### Pourquoi les bureaux ne sont pas versionnables
+
+C'est le cas le moins évident. Sur un clavier QWERTY, `Super+1` suffit ; sur
+AZERTY, cette touche envoie `&` et le chiffre exige `Shift`. Ce ne sont donc pas
+les mêmes noms de touches XKB (`ampersand`, `eacute`, `quotedbl`… contre `1`,
+`2`, `3`), et aucune des deux écritures ne peut servir l'autre. Même chose pour
+la direction « droite » de la rangée de repos : i3 la met sur la touche à droite
+du `L`, qui est `M` en AZERTY et `;` en QWERTY.
+
+`keyboard.conf` est sourcé **après** `binds.conf`, dont il réutilise le `$mod`,
+et rouvre au passage le `submap` de redimensionnement pour y ajouter les mêmes
+touches.
+
+### Pourquoi `machine.jsonc` s'intercale au milieu de waybar
+
+Waybar donne raison au **premier** qui définit une clé (voir plus haut). L'ordre
+des `include` est donc un ordre de priorité, et celui-ci se lit de gauche à
+droite : `local.jsonc` → `machine.jsonc` → `defaults.jsonc`. Ce que la machine
+impose bat les valeurs par défaut, mais reste dépassable à la main.
+
+### Cette machine en particulier
+
+- **Radeon RX 6950 XT** : pilote libre `amdgpu`, `gpu.conf` sort donc vide.
 - **Wifi Broadcom BCM4360** : nécessite `broadcom-sta-dkms` et un **Secure Boot
   désactivé** (module non signé). Sans rapport avec Hyprland, mais c'est ce qui
   fournit le réseau.
+
+Le chemin NVIDIA, lui, n'a jamais tourné : le fichier produit est vérifié, le
+comportement d'Hyprland dessus ne l'est pas — `04-dotfiles.sh` le dit à
+l'exécution. Pour l'exercer sans le matériel : `HY3_GPU=nvidia`,
+`HY3_KEYBOARD=us` et `HY3_LAPTOP=1` forcent chacune une détection.
 
 ## Liens
 

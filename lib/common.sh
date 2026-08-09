@@ -57,6 +57,9 @@ sudo_prime() {
 # (Au passage : « lspci -d ::0300 -d ::0302 » ne fonctionnerait pas, lspci ne
 # retient que le dernier -d au lieu de les cumuler.)
 detect_gpu() {
+	# HY3_GPU : force la valeur, seul moyen d'exercer une branche sans le matériel.
+	if [[ -n "${HY3_GPU:-}" ]]; then printf '%s\n' "$HY3_GPU"; return; fi
+
 	local vendors=""
 	for f in /sys/class/drm/card*/device/vendor; do
 		[[ -r "$f" ]] || continue
@@ -70,6 +73,42 @@ detect_gpu() {
 		*0x1002*) printf 'amd\n' ;;
 		*0x8086*) printf 'intel\n' ;;
 		*)        printf 'inconnu\n' ;;
+	esac
+}
+
+# Disposition du clavier : « layout variant », le variant pouvant être vide.
+# /etc/default/keyboard fait autorité sur Debian ; localectl n'est qu'un repli.
+detect_keyboard() {
+	# HY3_KEYBOARD=us, ou « fr latin9 » : force la valeur.
+	if [[ -n "${HY3_KEYBOARD:-}" ]]; then printf '%s\n' "$HY3_KEYBOARD"; return; fi
+
+	local layout="" variant=""
+	if [[ -r /etc/default/keyboard ]]; then
+		# shellcheck disable=SC1091
+		. /etc/default/keyboard
+		layout="${XKBLAYOUT:-}"; variant="${XKBVARIANT:-}"
+	fi
+
+	if [[ -z "$layout" ]] && command -v localectl >/dev/null; then
+		layout="$(localectl status 2>/dev/null | awk '/X11 Layout/ {print $3}')"
+		variant="$(localectl status 2>/dev/null | awk '/X11 Variant/ {print $3}')"
+	fi
+
+	printf '%s %s\n' "${layout:-fr}" "$variant"
+}
+
+# Vrai sur un portable. La batterie prime : elle est ce qui justifie réellement
+# la suspension automatique, là où le châssis DMI est souvent mal renseigné.
+is_laptop() {
+	# HY3_LAPTOP=1 ou 0 : force la réponse dans les deux sens.
+	if [[ -n "${HY3_LAPTOP:-}" ]]; then [[ "$HY3_LAPTOP" == "1" ]]; return; fi
+
+	compgen -G '/sys/class/power_supply/BAT*' >/dev/null && return 0
+
+	# 8-14 : portable, notebook, sub-notebook… ; 30-32 : tablette et convertibles.
+	case "$(cat /sys/class/dmi/id/chassis_type 2>/dev/null || true)" in
+		8|9|10|11|14|30|31|32) return 0 ;;
+		*)                     return 1 ;;
 	esac
 }
 

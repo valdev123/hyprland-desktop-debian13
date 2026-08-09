@@ -88,7 +88,18 @@ case "$GPU" in
 		EOF
 		ok "gpu.conf → NVIDIA"
 		pkg_installed nvidia-driver || warn "GPU NVIDIA détecté, mais nvidia-driver n'est pas installé — ce dépôt ne l'installe pas pour toi."
-		warn "Le chemin NVIDIA n'a jamais tourné sur cette machine (Radeon) : à vérifier au premier démarrage."
+
+		# Sans modeset=1, le pilote propriétaire ne fournit pas de KMS : Hyprland
+		# ne trouve aucune sortie DRM et refuse simplement de démarrer.
+		MODESET="$(cat /sys/module/nvidia_drm/parameters/modeset 2>/dev/null || true)"
+		case "$MODESET" in
+			Y|1) ok "nvidia_drm.modeset actif" ;;
+			"")  warn "Module nvidia_drm non chargé — impossible de vérifier modeset." ;;
+			*)   warn "nvidia_drm.modeset = $MODESET : Hyprland ne démarrera pas."
+			     warn "Corrige-le : ajoute « options nvidia-drm modeset=1 » dans /etc/modprobe.d/, puis « sudo update-initramfs -u »." ;;
+		esac
+
+		warn "Branche NVIDIA : le fichier produit est vérifié, le comportement d'Hyprland sur GPU NVIDIA ne l'est pas."
 		;;
 	amd|intel)
 		cat > "$GPU_CONF" <<-EOF
@@ -106,6 +117,126 @@ case "$GPU" in
 		warn "GPU non reconnu (/sys/class/drm muet) — gpu.conf laissé sans réglage."
 		;;
 esac
+
+# --- Clavier, résolu pour cette machine ---------------------------------------
+# Une rangée de bureaux ne se versionne pas : les noms de touches XKB changent
+# avec la disposition (sur AZERTY les chiffres demandent Shift).
+KEYBOARD_CONF="$CONFIG_SRC/hypr/keyboard.conf"
+read -r KB_LAYOUT KB_VARIANT <<<"$(detect_keyboard)"
+
+# D'une disposition multiple (« fr,us »), seule la première est active au démarrage.
+case "${KB_LAYOUT%%,*}" in
+	fr|be)
+		WS_KEYS=(ampersand eacute quotedbl apostrophe parenleft minus egrave underscore ccedilla)
+		# i3 place « focus right » sur la touche à droite du L : c'est M en AZERTY.
+		DIR_RIGHT="M"
+		;;
+	*)
+		WS_KEYS=(1 2 3 4 5 6 7 8 9)
+		DIR_RIGHT="semicolon"
+		;;
+esac
+
+{
+	cat <<-EOF
+		# Généré par scripts/04-dotfiles.sh — ne pas versionner (voir .gitignore).
+		# Disposition détectée : ${KB_LAYOUT}${KB_VARIANT:+ ($KB_VARIANT)}.
+		# Sourcé après binds.conf, dont il réutilise \$mod.
+
+		input {
+		    kb_layout = $KB_LAYOUT
+		    kb_variant = $KB_VARIANT
+		}
+
+		# --- Focus et déplacement -------------------------------------------------
+		bind = \$mod, J, hy3:movefocus, l
+		bind = \$mod, K, hy3:movefocus, d
+		bind = \$mod, L, hy3:movefocus, u
+		bind = \$mod, $DIR_RIGHT, hy3:movefocus, r
+
+		bind = \$mod SHIFT, J, hy3:movewindow, l
+		bind = \$mod SHIFT, K, hy3:movewindow, d
+		bind = \$mod SHIFT, L, hy3:movewindow, u
+		bind = \$mod SHIFT, $DIR_RIGHT, hy3:movewindow, r
+
+		# --- Bureaux --------------------------------------------------------------
+	EOF
+
+	for i in "${!WS_KEYS[@]}"; do
+		printf 'bind = $mod, %s, workspace, %d\n' "${WS_KEYS[$i]}" "$((i + 1))"
+	done
+	printf '\n'
+	# hy3:movetoworkspace conserve le groupe d'onglets, contrairement au dispatcher standard.
+	for i in "${!WS_KEYS[@]}"; do
+		printf 'bind = $mod SHIFT, %s, hy3:movetoworkspace, %d\n' "${WS_KEYS[$i]}" "$((i + 1))"
+	done
+	printf '\n# --- Onglets 1 à 5 du groupe --------------------------------------------------\n'
+	for i in 0 1 2 3 4; do
+		printf 'bind = $mod ALT, %s, hy3:focustab, %d\n' "${WS_KEYS[$i]}" "$((i + 1))"
+	done
+
+	cat <<-EOF
+
+		# --- Mode redimensionnement -----------------------------------------------
+		submap = resize
+		binde = , J, resizeactive, -40 0
+		binde = , K, resizeactive, 0 40
+		binde = , L, resizeactive, 0 -40
+		binde = , $DIR_RIGHT, resizeactive, 40 0
+		submap = reset
+	EOF
+} > "$KEYBOARD_CONF"
+ok "keyboard.conf → $KB_LAYOUT${KB_VARIANT:+ ($KB_VARIANT)}, bureaux sur ${WS_KEYS[0]}…${WS_KEYS[8]}"
+
+# --- Portable ou tour, résolu pour cette machine ------------------------------
+# hypridle n'a pas de conditionnel : la suspension ne peut pas vivre dans le
+# fichier versionné, qui sert les deux cas.
+HYPRIDLE_LOCAL="$CONFIG_SRC/hypr/hypridle-local.conf"
+WAYBAR_MACHINE="$CONFIG_SRC/waybar/machine.jsonc"
+
+if is_laptop; then
+	cat > "$HYPRIDLE_LOCAL" <<-'EOF'
+		# Généré par scripts/04-dotfiles.sh — ne pas versionner (voir .gitignore).
+		# Portable détecté : suspension après 30 min d'inactivité.
+
+		listener {
+		    timeout = 1800
+		    on-timeout = systemctl suspend
+		}
+	EOF
+
+	cat > "$WAYBAR_MACHINE" <<-'EOF'
+		// Généré par scripts/04-dotfiles.sh — ne pas versionner (voir .gitignore).
+		// Portable détecté : la barre reprend celle par défaut, batterie en plus.
+		{
+		  "modules-right": ["pulseaudio", "network", "battery", "cpu", "memory", "tray"],
+
+		  "battery": {
+		    "states": { "warning": 30, "critical": 15 },
+		    "format": "BAT {capacity}%",
+		    "format-charging": "CHR {capacity}%",
+		    "format-plugged": "SECTEUR {capacity}%",
+		    "tooltip-format": "{timeTo}"
+		  }
+		}
+	EOF
+	ok "portable détecté → suspension auto + module batterie"
+else
+	cat > "$HYPRIDLE_LOCAL" <<-'EOF'
+		# Généré par scripts/04-dotfiles.sh — ne pas versionner (voir .gitignore).
+		# Aucune batterie : pas de suspension automatique.
+	EOF
+
+	# Un objet vide, pas un fichier vide : waybar refuse de démarrer sur du JSON
+	# invalide, y compris venu d'un include.
+	cat > "$WAYBAR_MACHINE" <<-'EOF'
+		// Généré par scripts/04-dotfiles.sh — ne pas versionner (voir .gitignore).
+		// Aucune batterie détectée : rien à ajouter à la barre.
+		{
+		}
+	EOF
+	ok "tour détectée → ni suspension auto, ni module batterie"
+fi
 
 # --- Fichiers de surcharge personnels -----------------------------------------
 # Rupture assumée avec plugins.conf et gpu.conf, réécrits à chaque passage :
@@ -145,6 +276,17 @@ creer_si_absent "$CONFIG_SRC/hypr/local.conf" <<-'EOF'
 	#
 	#     unbind = SUPER, Return
 	#     bind = SUPER, Return, exec, alacritty
+EOF
+
+creer_si_absent "$CONFIG_SRC/hypr/monitors.conf" <<-'EOF'
+	# Disposition de tes écrans. Ignoré par git : les noms de sortie (DP-1, eDP-1…)
+	# n'ont de sens que sur la machine où ils ont été lus.
+	#
+	# Sourcé après la règle générique de hyprland.conf, donc il la surcharge.
+	# « hypr-monitors save » remplit ce fichier à partir de l'affichage en cours.
+	#
+	#     monitor = DP-1, 2560x1440@144, 0x0, 1
+	#     monitor = HDMI-A-1, 1920x1080@60, 2560x0, 1
 EOF
 
 creer_si_absent "$CONFIG_SRC/waybar/local.jsonc" <<-'EOF'
@@ -187,10 +329,12 @@ creer_si_absent "$CONFIG_SRC/foot/local.ini" <<-'EOF'
 	#     background=000000
 EOF
 
-# --- hy3-rebuild dans le PATH -------------------------------------------------
+# --- Commandes du dépôt dans le PATH ------------------------------------------
 mkdir -p "$HOME/.local/bin"
-ln -sf "$REPO_DIR/bin/hy3-rebuild" "$HOME/.local/bin/hy3-rebuild"
-ok "hy3-rebuild → ~/.local/bin/"
+for cmd in hy3-rebuild hypr-monitors; do
+	ln -sf "$REPO_DIR/bin/$cmd" "$HOME/.local/bin/$cmd"
+	ok "$cmd → ~/.local/bin/"
+done
 
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
 	warn "~/.local/bin n'est pas dans ton PATH — ajoute-le à ton ~/.bashrc pour utiliser « hy3-rebuild »."

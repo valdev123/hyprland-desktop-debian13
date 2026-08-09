@@ -7,6 +7,18 @@ config/hypr/plugins.conf
 # machine AMD.
 config/hypr/gpu.conf
 
+# Même motif, pour le reste de ce que la machine impose : disposition du clavier
+# et raccourcis qui en dépendent, suspension automatique d'un portable, module
+# batterie de la barre. Tous réécrits à chaque « ./install.sh dotfiles ».
+config/hypr/keyboard.conf
+config/hypr/hypridle-local.conf
+config/waybar/machine.jsonc
+
+# Disposition des écrans : écrite une fois par « hypr-monitors save », jamais
+# réécrite — les noms de sortie (DP-1, eDP-1…) ne valent que sur cette machine.
+config/hypr/monitors.conf
+config/hypr/monitors.conf.bak
+
 # Surcharges personnelles : créées une fois par scripts/04-dotfiles.sh, puis
 # jamais réécrites. C'est là que chacun met ses réglages — c'est ce qui permet de
 # cloner ce dépôt et de le personnaliser sans qu'un « git pull » ait jamais à

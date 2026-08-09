@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Fige la disposition des écrans telle qu'elle est à l'instant T.
+#
+#   hypr-monitors        affiche ce qui serait écrit
+#   hypr-monitors save   l'écrit dans ~/.config/hypr/monitors.conf
+#
+# À utiliser quand la règle générique de hyprland.conf place mal un second écran :
+# elle les dispose dans l'ordre où le noyau les énumère, pas dans l'ordre physique.
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+source "$REPO_DIR/lib/common.sh"
+
+require_not_root
+
+CONF="$REPO_DIR/config/hypr/monitors.conf"
+
+command -v hyprctl >/dev/null || die "hyprctl introuvable : Hyprland n'est pas installé."
+command -v jq >/dev/null      || die "jq introuvable : sudo apt install jq"
+hyprctl monitors -j >/dev/null 2>&1 || die "Aucune session Hyprland en cours — lance cette commande depuis Hyprland."
+
+# Le taux remonté est un flottant (143.99899) ; arrondi, il retombe sur le même mode.
+LIGNES="$(hyprctl monitors -j | jq -r '
+	sort_by(.x, .y)[]
+	| "monitor = \(.name), \(.width)x\(.height)@\(.refreshRate | round), \(.x)x\(.y), \(.scale)"
+')"
+
+[[ -n "$LIGNES" ]] || die "hyprctl n'a rapporté aucun écran."
+
+if [[ "${1:-}" != "save" ]]; then
+	log "Disposition actuelle (relance avec « save » pour l'écrire dans monitors.conf) :"
+	printf '\n%s\n\n' "$LIGNES"
+	exit 0
+fi
+
+if [[ -f "$CONF" ]]; then
+	cp "$CONF" "$CONF.bak"
+	ok "Ancien fichier sauvegardé : monitors.conf.bak"
+fi
+
+cat > "$CONF" <<EOF
+# Écrit par « hypr-monitors save ». Ignoré par git : ces noms de sortie n'ont de
+# sens que sur cette machine. L'ancienne version est dans monitors.conf.bak.
+
+$LIGNES
+EOF
+
+ok "Disposition figée dans $CONF"
+printf '%s\n' "$LIGNES"
+log "Applique-la : hyprctl reload"

@@ -68,9 +68,13 @@ $C_GREEN Installation terminée.$C_RESET
      Super + H / V        découper horizontalement / verticalement (hy3)
      Super + W            regrouper en onglets (hy3)
      Super + flèches      changer de fenêtre
-     Super + & é " …      changer de bureau (rangée de chiffres AZERTY)
+     Super + 1 … 9        changer de bureau (& é " … sur AZERTY)
 
- La liste complète est dans config/hypr/binds.conf.
+ La liste complète est dans config/hypr/binds.conf — sauf ce qui dépend de la
+ disposition du clavier, généré dans config/hypr/keyboard.conf.
+
+ Si un second écran est mal placé : « hypr-monitors save » fige la disposition
+ courante, puis « hyprctl reload ».
 
  Tes réglages à toi : les fichiers « local » de ~/.config (hypr/local.conf,
  waybar/local.jsonc, waybar/local.css, mako/local, foot/local.ini). Ils sont

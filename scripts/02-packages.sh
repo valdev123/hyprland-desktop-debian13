@@ -29,6 +29,7 @@ MAIN_PKGS=(
 	waybar wofi foot mako-notifier
 	# Outils
 	grim slurp wl-clipboard brightnessctl playerctl
+	jq                       # lit « hyprctl monitors -j » dans bin/hypr-monitors
 	thunar udiskie pavucontrol blueman
 	# Audio
 	pipewire pipewire-pulse wireplumber

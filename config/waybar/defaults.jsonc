@@ -43,7 +43,6 @@
   },
 
   "network": {
-    // wlp36s0 : la carte Broadcom BCM4360 de cette machine.
     "format-wifi": "{essid} {signalStrength}%",
     "format-ethernet": "Ethernet",
     "format-disconnected": "Hors ligne",
