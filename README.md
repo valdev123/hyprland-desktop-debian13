@@ -1,15 +1,27 @@
-# hyprland-debian13
+# hyprland-desktop-debian13
 
-Installation d'**Hyprland + le plugin hy3** sur **Debian 13 (trixie)**, avec un
-bureau utilisable dès le premier démarrage et des dotfiles versionnés.
+Un **environnement de bureau complet** sous **Hyprland**, sur **Debian 13
+(trixie)** : le compositeur pavé, ses raccourcis calqués sur i3, et tout ce qu'un
+bureau exige pour être utilisable — barre, lanceur, terminal, notifications,
+verrouillage, audio, réseau, trousseau, écran de connexion. Le tout en dotfiles
+versionnés.
 
 ```bash
-git clone <ton-repo> ~/hyprland-debian13
-cd ~/hyprland-debian13
+git clone <ton-repo> ~/hyprland-desktop-debian13
+cd ~/hyprland-desktop-debian13
 ./install.sh
 ```
 
 Puis, depuis un TTY : `Hyprland`.
+
+Une session Hyprland nue n'est qu'un compositeur : pas de barre, pas de son, pas
+de mot de passe retenu, des applications GTK en thème clair. L'essentiel du
+travail ici est cette seconde couche, pas l'installation d'Hyprland — qui tient
+en une ligne d'`apt`. Le plugin **hy3**, lui, se compile : c'est la seule pièce
+que Debian n'empaquette pas.
+
+Ce que le dépôt n'installe pas, délibérément : les pilotes GPU et les
+applications de travail.
 
 ---
 
@@ -27,6 +39,9 @@ Puis, depuis un TTY : `Hyprland`.
 Le script est **idempotent** : le relancer ne casse rien. On peut n'en rejouer
 qu'une partie : `./install.sh hy3`, `./install.sh dotfiles`, `./install.sh gnome`,
 `./install.sh greetd`.
+
+L'inventaire complet de ce qui atterrit sur la machine — paquet par paquet,
+chemin par chemin — est dans [PAQUETS.md](PAQUETS.md).
 
 ### Étape 5 — la « plomberie GNOME », qui n'est pas GNOME
 

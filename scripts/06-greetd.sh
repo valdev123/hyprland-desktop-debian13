@@ -34,7 +34,7 @@ id "$GREETER_USER" &>/dev/null || die "Aucun utilisateur greeter (_greetd) cré�
 
 sudo mkdir -p /etc/greetd
 sudo tee "$CONF" >/dev/null <<EOF
-# Généré par hyprland-debian13/scripts/06-greetd.sh
+# Généré par hyprland-desktop-debian13/scripts/06-greetd.sh
 
 [terminal]
 # TTY 7 : les TTY 1-6 restent des consoles texte utilisables (Ctrl+Alt+F2).
