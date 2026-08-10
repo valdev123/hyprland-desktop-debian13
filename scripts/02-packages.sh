@@ -33,6 +33,7 @@ MAIN_PKGS=(
 	grim slurp wl-clipboard brightnessctl playerctl
 	tmux
 	jq                       # lit « hyprctl monitors -j » dans bin/hypr-monitors
+	rsync                    # exigé par l'auto-update de Zed, installé en 07-apps.sh
 	thunar udiskie pavucontrol blueman
 	# Audio
 	pipewire pipewire-pulse wireplumber
