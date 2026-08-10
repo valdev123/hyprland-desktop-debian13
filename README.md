@@ -92,7 +92,7 @@ changent ailleurs.
 |---|---|
 | `Super` + `Entrée` / `D` / `N` | terminal / lanceur / fichiers |
 | `Super` + `Shift` + `Q` | fermer la fenêtre ou l'onglet |
-| `Super` + `Shift` + `E` | quitter Hyprland |
+| `Super` + `Shift` + `E` | menu de session (verrouiller, veille, redémarrer, éteindre, quitter) |
 | `Super` + `Shift` + `C` | recharger la config |
 | `Super` + `H` / `V` | découper horizontalement / verticalement *(hy3)* |
 | `Super` + `E` | basculer le sens de la découpe *(hy3)* |
@@ -119,6 +119,7 @@ sauf les lignes ¹, générées dans `keyboard.conf`.
 install.sh              orchestrateur
 bin/hy3-rebuild         recompile hy3 après une mise à jour d'Hyprland
 bin/hypr-monitors       fige la disposition des écrans dans monitors.conf
+bin/hypr-power          menu de session (Super+Shift+E)
 lib/common.sh           logs, garde-fous, détection matérielle, helpers apt
 scripts/                les 7 étapes
 config/                 dotfiles, liés dans ~/.config

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Menu de session : verrouiller, suspendre, hiberner, redémarrer, éteindre,
+# fermer la session. Lié à Super+Shift+E.
+#
+# Le menu est la confirmation : rien ne part sans un choix explicite, Échap
+# annule.
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+source "$REPO_DIR/lib/common.sh"
+
+require_not_root
+
+command -v wofi >/dev/null || die "wofi introuvable : sudo apt install wofi"
+
+# La moins destructive en tête : un Entrée réflexe verrouille au lieu d'éteindre.
+ENTREES=(Verrouiller Suspendre)
+
+# Swap de 7,7 Gio pour 15 Gio de RAM : logind répond oui, mais l'hibernation
+# échoue si la mémoire occupée ne tient pas dans le swap.
+if busctl --system call org.freedesktop.login1 /org/freedesktop/login1 \
+	org.freedesktop.login1.Manager CanHibernate 2>/dev/null | grep -q '"yes"'; then
+	ENTREES+=(Hiberner)
+fi
+
+ENTREES+=(Redémarrer Éteindre "Fermer la session")
+
+# +2 : « lines » ne compte ni la ligne de saisie ni les marges du cadre, et la
+# dernière entrée passerait sous le bord — mesuré, pas deviné.
+CHOIX="$(printf '%s\n' "${ENTREES[@]}" | wofi --dmenu --prompt Session --lines "$(( ${#ENTREES[@]} + 2 ))")" || exit 0
+[[ -n "$CHOIX" ]] || exit 0
+
+case "$CHOIX" in
+	# Par logind, comme le capot : hypridle relaie vers hyprlock, et la session
+	# est alors connue verrouillée. Idem avant une veille (before_sleep_cmd).
+	Verrouiller)         exec loginctl lock-session ;;
+	Suspendre)           exec systemctl suspend ;;
+	Hiberner)            exec systemctl hibernate ;;
+	Redémarrer)          exec systemctl reboot ;;
+	Éteindre)            exec systemctl poweroff ;;
+	"Fermer la session") exec hyprctl dispatch exit ;;
+	*)                   die "Choix inattendu : $CHOIX" ;;
+esac

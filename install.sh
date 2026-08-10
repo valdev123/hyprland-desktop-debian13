@@ -76,7 +76,7 @@ $C_GREEN Installation terminée.$C_RESET
      Super + Entrée       terminal (alacritty, qui ouvre tmux sous zsh)
      Super + D            lanceur (wofi)
      Super + Shift + Q    fermer la fenêtre
-     Super + Shift + E    quitter Hyprland
+     Super + Shift + E    menu de session (verrouiller, éteindre, redémarrer…)
      Super + Shift + C    recharger la config
      Super + H / V        découper horizontalement / verticalement (hy3)
      Super + W            regrouper en onglets (hy3)

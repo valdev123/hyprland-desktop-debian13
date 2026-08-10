@@ -372,7 +372,7 @@ fi
 
 # --- Commandes du dépôt dans le PATH ------------------------------------------
 mkdir -p "$HOME/.local/bin"
-for cmd in hy3-rebuild hypr-monitors; do
+for cmd in hy3-rebuild hypr-monitors hypr-power; do
 	ln -sf "$REPO_DIR/bin/$cmd" "$HOME/.local/bin/$cmd"
 	ok "$cmd → ~/.local/bin/"
 done
