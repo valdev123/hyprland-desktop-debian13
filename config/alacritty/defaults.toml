@@ -2,7 +2,7 @@
 
 [window]
 opacity = 0.95
-padding = { x = 8, y = 8 }
+padding = { x = 12, y = 12 }
 
 # tmux à l'ouverture, une session neuve par fenêtre. Le repli sur zsh évite de
 # se retrouver sans terminal si tmux refuse de démarrer (tmux.conf invalide).
@@ -12,7 +12,10 @@ args = ["-c", "tmux new-session || exec zsh"]
 
 [font]
 size = 11.0
-normal = { family = "JetBrains Mono", style = "Regular" }
+# La variante « Mono » et elle seule : ses icônes tiennent dans une cellule, là
+# où « JetBrainsMono Nerd Font » les dessine sur deux et désaligne les colonnes.
+# Le dessin des lettres est celui de JetBrains Mono, à l'identique.
+normal = { family = "JetBrainsMono Nerd Font Mono", style = "Regular" }
 
 [cursor]
 style = { shape = "Beam", blinking = "On" }

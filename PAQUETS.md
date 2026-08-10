@@ -49,6 +49,22 @@ partagées avec Hyprland restent cohérentes.
 | Audio | `pipewire`, `pipewire-pulse`, `wireplumber` |
 | Réseau | `network-manager`, `network-manager-gnome` (`nm-applet`) |
 | Polices et icônes | `fonts-jetbrains-mono`, `fonts-font-awesome`, `fonts-noto-color-emoji`, `papirus-icon-theme` |
+| Divers | `curl` (télécharge la Nerd Font, ci-dessous) |
+
+## Étape 2 — police à glyphes
+
+Aucune Nerd Font n'existe dans les dépôts Debian, et waybar affiche des icônes.
+L'étape télécharge donc `JetBrainsMono.tar.xz` depuis la dernière version de
+`github.com/ryanoasis/nerd-fonts` et n'en extrait que deux familles sur six —
+l'archive entière pèse 230 Mo une fois posée, contre 78 Mo ici.
+
+| Chemin | Contenu |
+|---|---|
+| `~/.local/share/fonts/JetBrainsMonoNerdFont/` | « JetBrainsMono Nerd Font » (icônes sur deux cellules, pour la barre et les menus) et « …Nerd Font Mono » (icônes sur une cellule, pour le terminal) |
+
+Hors apt, sans sudo, et sans conflit avec `fonts-jetbrains-mono` : les deux
+familles ont des noms distincts. Un échec réseau n'interrompt pas l'installation
+— seules les icônes de la barre manquent.
 
 ## Étape 2 — shell de connexion
 
@@ -140,6 +156,7 @@ Il n'y a pas de script pour ça. Les paquets se retirent avec
 `sudo apt purge --autoremove <liste>` ; le reste tient dans quatre chemins :
 `~/.config/{hypr,waybar,wofi,alacritty,tmux,mako,zsh}` (des liens),
 `~/.local/share/hy3-src`, `~/.local/share/hyprland/plugins`,
+`~/.local/share/fonts/JetBrainsMonoNerdFont`,
 `~/.local/bin/{hy3-rebuild,hypr-monitors}` — plus `~/.local/zed.app`,
 `~/.local/bin/zed` et `~/.zshenv`. Le shell de connexion se rend avec
 `sudo chsh -s /bin/bash $USER`. Côté système, `/etc/greetd/config.toml` et

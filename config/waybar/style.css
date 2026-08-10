@@ -1,71 +1,120 @@
-/* Waybar — palette Catppuccin Mocha, accordée aux bordures d'Hyprland. */
+/* Waybar — palette Catppuccin Mocha, accordée aux bordures d'Hyprland.
+   Un seul accent (@accent) : il ne dit que « c'est ici que tu es ». Le rouge et
+   le jaune sont des états, jamais de la décoration. */
+
+@define-color base    #1e1e2e;   /* fond des fenêtres */
+@define-color surface #313244;   /* pilules */
+@define-color hover   #45475a;
+@define-color text    #cdd6f4;
+@define-color subtext #a6adc8;
+@define-color muted   #6c7086;
+@define-color accent  #89b4fa;
+@define-color warn    #f9e2af;
+@define-color error   #f38ba8;
 
 * {
-  font-family: "JetBrains Mono", "Font Awesome 6 Free", monospace;
+  /* JetBrains Mono d'abord pour le texte, la Nerd Font seulement en secours,
+     pour les glyphes d'icônes qu'elle est seule à avoir. */
+  font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", monospace;
   font-size: 13px;
   border: none;
   border-radius: 0;
   min-height: 0;
 }
 
+/* La barre elle-même ne peint rien : ce sont les pilules qui portent le fond,
+   d'où l'impression de flottement bien qu'elle soit collée en bas. */
 window#waybar {
-  background: rgba(30, 30, 46, 0.92);
-  color: #cdd6f4;
-}
-
-#workspaces button {
-  padding: 0 10px;
-  color: #6c7086;
   background: transparent;
+  color: @text;
 }
 
-#workspaces button.active {
-  color: #1e1e2e;
-  background: #89b4fa;
-  border-radius: 6px;
-}
-
-#workspaces button.urgent {
-  color: #1e1e2e;
-  background: #f38ba8;
-  border-radius: 6px;
-}
-
-#workspaces button:hover {
-  color: #cdd6f4;
-  background: #45475a;
-  border-radius: 6px;
-}
-
-#window {
-  padding: 0 12px;
-  color: #a6adc8;
-}
-
-#clock {
-  padding: 0 14px;
-  color: #cdd6f4;
-  font-weight: bold;
-}
-
+/* Géométrie commune à tous les modules. Une seule règle, pas deux styles
+   concurrents comme avant. */
+#workspaces,
+#clock,
 #cpu,
 #memory,
 #network,
 #pulseaudio,
 #tray {
-  padding: 0 10px;
-  margin: 4px 2px;
-  background: #313244;
-  border-radius: 6px;
+  background-color: @surface;
+  border-radius: 999px;
+  padding: 0 13px;
+  margin: 5px 3px;
+}
+
+/* Bords de l'écran : seuls les modules d'extrémité s'en écartent. */
+#workspaces {
+  padding: 0 4px;
+  margin-left: 8px;
+}
+
+#tray {
+  margin-right: 8px;
+}
+
+#workspaces button {
+  padding: 0 9px;
+  margin: 3px 2px;
+  border-radius: 999px;
+  color: @muted;
+  background: transparent;
+}
+
+#workspaces button.visible {
+  color: @text;
+}
+
+#workspaces button:hover {
+  background-color: @hover;
+  color: @text;
+}
+
+#workspaces button.active {
+  background-color: @accent;
+  color: @base;
+  font-weight: bold;
+}
+
+#workspaces button.urgent {
+  background-color: @error;
+  color: @base;
+}
+
+/* Sans pilule et en texte secondaire : le titre accompagne, il ne réclame pas
+   l'attention. La classe .empty évite une pilule fantôme sur un bureau nu. */
+#window {
+  padding: 0 6px;
+  color: @subtext;
+}
+
+window#waybar.empty #window {
+  padding: 0;
+}
+
+#clock {
+  font-weight: bold;
+}
+
+#cpu.warning,
+#memory.warning {
+  color: @warn;
+}
+
+#cpu.critical,
+#memory.critical {
+  background-color: @error;
+  color: @base;
 }
 
 #network.disconnected {
-  background: #f38ba8;
-  color: #1e1e2e;
+  background-color: @error;
+  color: @base;
 }
 
 #pulseaudio.muted {
-  color: #6c7086;
+  color: @muted;
 }
 
 /* Tes surcharges, importées en dernier : à spécificité égale, c'est la dernière

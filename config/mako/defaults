@@ -1,15 +1,21 @@
-# Notifications (mako).
+# Notifications (mako). Même géométrie que la carte wofi : trait neutre de 1 px,
+# coins à 10. Le bleu ne sert pas ici — une notification n'est pas un état.
 
 font=JetBrains Mono 10
 background-color=#1e1e2ee6
 text-color=#cdd6f4
-border-color=#89b4fa
-border-size=2
-border-radius=8
-padding=12
+border-color=#45475a
+border-size=1
+border-radius=10
+padding=14
 margin=8
+width=380
+height=180
 default-timeout=5000
 anchor=top-right
+outer-margin=10
+max-visible=4
+icon-path=/usr/share/icons/Papirus-Dark
 
 [urgency=critical]
 border-color=#f38ba8

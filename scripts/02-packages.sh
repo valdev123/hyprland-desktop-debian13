@@ -41,6 +41,7 @@ MAIN_PKGS=(
 	network-manager network-manager-gnome
 	# Polices et icônes
 	fonts-jetbrains-mono fonts-font-awesome fonts-noto-color-emoji papirus-icon-theme
+	curl                     # télécharge la Nerd Font, plus bas
 )
 
 # --- Dépendances de compilation de hy3 ---------------------------------------
@@ -80,6 +81,38 @@ sudo apt-get install -y "${APT_TARGET[@]}" "${MAIN_PKGS[@]}"
 
 log "Chaîne de compilation pour hy3 (${#BUILD_PKGS[@]})"
 sudo apt-get install -y "${APT_TARGET[@]}" "${BUILD_PKGS[@]}"
+
+# --- Police à glyphes ---------------------------------------------------------
+# Aucune Nerd Font n'est empaquetée par Debian, et waybar affiche des icônes :
+# sans elle, la barre se remplit de carrés. Installée dans le profil utilisateur,
+# donc sans sudo.
+#
+# L'URL « latest » évite de figer une version, pour la même raison que le tag hy3
+# n'est pas codé en dur : la police n'a aucun lien avec la version d'Hyprland.
+NERD_DIR="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
+NERD_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz"
+
+log "Police JetBrainsMono Nerd Font"
+if fc-list : family | grep -q 'JetBrainsMono Nerd Font'; then
+	ok "JetBrainsMono Nerd Font : déjà installée"
+else
+	NERD_ARCHIVE="$(mktemp -t jetbrainsmono-nf-XXXXXX.tar.xz)"
+	if curl -fsSL --retry 2 -o "$NERD_ARCHIVE" "$NERD_URL"; then
+		mkdir -p "$NERD_DIR"
+		# Deux des six familles de l'archive, qui en pèse 230 Mo une fois posée.
+		# La variante « Mono » rend ses icônes sur une seule cellule : c'est
+		# celle du terminal. L'autre les rend sur deux, ce qui va aux barres et
+		# aux menus mais désaligne un terminal.
+		tar -xJf "$NERD_ARCHIVE" -C "$NERD_DIR" --wildcards \
+			'JetBrainsMonoNerdFont-*.ttf' 'JetBrainsMonoNerdFontMono-*.ttf'
+		fc-cache -f "$NERD_DIR" >/dev/null
+		ok "JetBrainsMono Nerd Font installée dans $NERD_DIR"
+	else
+		# Pas de « die » : tout le reste de l'installation fonctionne sans elle.
+		warn "Téléchargement de la Nerd Font échoué — les icônes de waybar s'afficheront en carrés. Relance cette étape une fois le réseau revenu."
+	fi
+	rm -f "$NERD_ARCHIVE"
+fi
 
 # --- zsh comme shell de connexion ---------------------------------------------
 # Ici et pas dans 04-dotfiles.sh, qui n'a pas le ticket sudo : « chsh » sur son

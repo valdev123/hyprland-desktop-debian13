@@ -1,8 +1,8 @@
 {
   "layer": "top",
-  "position": "top",
-  "height": 34,
-  "spacing": 6,
+  "position": "bottom",
+  "height": 38,
+  "spacing": 0,
 
   "modules-left": ["hyprland/workspaces", "hyprland/window"],
   "modules-center": ["clock"],
@@ -19,39 +19,47 @@
     "separate-outputs": true
   },
 
+  // Le « L » applique la locale ci-dessous ; sans lui le jour et le mois
+  // sortent en anglais, la session lancée par greetd n'ayant pas de LANG.
   "clock": {
-    "format": "{:%H:%M  %a %d %b}",
+    "format": "{:L%H:%M  %a %d %b}",
     "tooltip-format": "<tt>{calendar}</tt>",
     "locale": "fr_FR.UTF-8"
   },
 
+  // Les seuils nourrissent les classes .warning et .critical de style.css :
+  // le jaune et le rouge n'apparaissent que quand quelque chose se passe.
   "cpu": {
-    "format": "CPU {usage}%",
-    "interval": 3
+    "format": "󰻠 {usage}%",
+    "interval": 3,
+    "states": { "warning": 75, "critical": 90 }
   },
 
   "memory": {
-    "format": "RAM {percentage}%",
-    "interval": 5
+    "format": "󰍛 {percentage}%",
+    "interval": 5,
+    "states": { "warning": 80, "critical": 92 }
   },
 
   "pulseaudio": {
-    "format": "VOL {volume}%",
-    "format-muted": "VOL muet",
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟",
+    "format-icons": { "default": ["󰕿", "󰖀", "󰕾"] },
     "on-click": "pavucontrol",
     "scroll-step": 5
   },
 
   "network": {
-    "format-wifi": "{essid} {signalStrength}%",
-    "format-ethernet": "Ethernet",
-    "format-disconnected": "Hors ligne",
+    "format-wifi": "󰖩 {signalStrength}%",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰖪",
+    "tooltip-format-wifi": "{essid} — {ipaddr}",
     "tooltip-format": "{ifname} — {ipaddr}",
     "on-click": "nm-connection-editor"
   },
 
   "tray": {
     "icon-size": 16,
-    "spacing": 8
+    "spacing": 10
   }
 }

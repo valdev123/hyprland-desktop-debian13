@@ -1,0 +1,18 @@
+# Lanceur wofi (Super + D). Sans ce fichier, wofi s'ouvre en 40 % de l'écran,
+# soit une fenêtre géante sur un 1440p.
+#
+# « show » n'est pas défini ici : c'est le raccourci qui choisit le mode, sinon
+# « wofi --show run » se retrouverait forcé en drun.
+
+width=620
+height=440
+lines=9
+location=center
+prompt=Rechercher
+insensitive=true
+hide_scroll=true
+no_actions=true
+term=alacritty
+
+allow_images=true
+image_size=24

@@ -1,40 +1,53 @@
-/* Lanceur wofi (Super + R). */
+/* Lanceur wofi (Super + D). Le bleu est réservé à la sélection : le contour de
+   la carte reste neutre, comme celui des notifications. */
 
 window {
   background-color: #1e1e2e;
-  border: 2px solid #89b4fa;
-  border-radius: 10px;
-  font-family: "JetBrains Mono", monospace;
+  border: 1px solid #45475a;
+  border-radius: 14px;
+  font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", monospace;
   font-size: 13px;
 }
 
 #input {
-  margin: 8px;
-  padding: 8px;
+  margin: 12px 12px 8px 12px;
+  padding: 10px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   background-color: #313244;
   color: #cdd6f4;
+}
+
+#input image {
+  color: #6c7086;
 }
 
 #inner-box,
 #outer-box,
 #scroll {
   background-color: transparent;
-  margin: 4px;
+  margin: 0;
+}
+
+#scroll {
+  margin: 0 8px 10px 8px;
 }
 
 #entry {
-  padding: 8px;
-  border-radius: 6px;
+  padding: 9px 12px;
+  border-radius: 10px;
 }
 
-#entry:selected {
-  background-color: #89b4fa;
+#entry image {
+  margin-right: 10px;
 }
 
 #text {
   color: #cdd6f4;
+}
+
+#entry:selected {
+  background-color: #89b4fa;
 }
 
 #entry:selected #text {

@@ -64,6 +64,32 @@ contrainte à retenir :
 > **Après chaque mise à jour d'Hyprland, relance `hy3-rebuild`.** Sinon les hash
 > divergent, Hyprland refuse le plugin et tu retombes sur `dwindle`.
 
+### Un réglage hy3 mal nommé ne fait rien, et ne le dit pas
+
+Le plugin a renommé une partie de ses options en cours de route : les couleurs
+d'onglets sont passées de `col.active` à un bloc `colors { active = … }`, et
+`rounding` s'appelle `radius`. Hyprland n'avertit pas — un nom inconnu sous
+`plugin {}` est ignoré en silence, sans ligne dans `hyprctl configerrors`. Les
+onglets gardaient donc leur turquoise d'origine alors que la config disait bleu.
+
+Le seul contrôle fiable : `hyprctl getoption plugin:hy3:tabs:radius`, qui répond
+`no such option` sur un nom qui n'existe pas. Et pour l'inventaire complet :
+`strings ~/.local/share/hyprland/plugins/libhy3.so | grep ^plugin:hy3`.
+
+Au passage, les trois états d'onglet ne portent pas le nom qu'on croit :
+`active` est l'onglet dont la fenêtre a le focus, `focused` celui d'un groupe que
+le focus a quitté.
+
+### Aucune Nerd Font n'est empaquetée par Debian
+
+La barre affiche des icônes, et pas un seul dépôt Debian ne fournit de Nerd Font.
+L'étape 2 la télécharge donc depuis GitHub, dans `~/.local/share/fonts` — hors
+apt et sans sudo, ce qui veut aussi dire qu'`apt upgrade` ne la met jamais à
+jour. Elle n'a de toute façon rien à voir avec la version d'Hyprland.
+
+L'échec du téléchargement n'interrompt pas l'installation : tout fonctionne sans
+elle, la barre affiche seulement des carrés à la place des icônes.
+
 ### L'étape 5 n'installe pas GNOME
 
 Elle pose une couche de services **sans interface** — trousseau
